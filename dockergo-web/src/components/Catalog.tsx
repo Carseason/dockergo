@@ -55,15 +55,17 @@ export function Catalog({
       className={`catalog ${isMarket ? "" : "catalog--installed"}`}
       id="catalog"
     >
-      <div className="section-heading">
-        <div>
-          <h2>{isMarket ? "探索应用" : "已安装应用"}</h2>
-          <p>
-            {isMarket
-              ? "为你的工作流选择合适的工具"
-              : `${containers.length} 个 Docker 容器已安装在此设备上`}
-          </p>
-        </div>
+      <div
+        className={`section-heading ${
+          isMarket ? "" : "section-heading--actions-only"
+        }`}
+      >
+        {isMarket && (
+          <div>
+            <h2>探索应用</h2>
+            <p>为你的工作流选择合适的工具</p>
+          </div>
+        )}
         {isMarket && activeCategory !== "全部" ? (
           <button
             type="button"

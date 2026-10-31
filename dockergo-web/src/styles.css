@@ -427,6 +427,13 @@ main {
   gap: 20px;
 }
 
+.section-heading--actions-only {
+  min-height: 40px;
+  margin-bottom: 10px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 .section-heading h2 {
   margin: 0;
   color: var(--navy);
@@ -454,6 +461,8 @@ main {
 }
 
 .refresh-button {
+  min-height: 40px;
+  padding: 8px 4px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
