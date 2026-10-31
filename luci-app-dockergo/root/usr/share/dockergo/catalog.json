@@ -14,6 +14,75 @@
           "web": true
         }
       ]
+    },
+    {
+      "id": "uptime-kuma",
+      "title": "Uptime Kuma",
+      "description": "简单易用的自托管服务监控与状态通知工具",
+      "tags": ["监控", "运维", "Web"],
+      "image": "louislam/uptime-kuma:2.5.8",
+      "ports": [
+        {
+          "container": 3001,
+          "host": 3001,
+          "web": true
+        }
+      ],
+      "volumes": [
+        {
+          "container": "/app/data",
+          "host": "data"
+        }
+      ],
+      "environment": {
+        "TZ": "Asia/Shanghai"
+      }
+    },
+    {
+      "id": "vaultwarden",
+      "title": "Vaultwarden",
+      "description": "兼容 Bitwarden 客户端的轻量密码管理服务",
+      "tags": ["安全", "密码", "Web"],
+      "image": "vaultwarden/server:1.37.4",
+      "ports": [
+        {
+          "container": 80,
+          "host": 8081,
+          "web": true
+        }
+      ],
+      "volumes": [
+        {
+          "container": "/data",
+          "host": "data"
+        }
+      ],
+      "environment": {
+        "TZ": "Asia/Shanghai"
+      }
+    },
+    {
+      "id": "freshrss",
+      "title": "FreshRSS",
+      "description": "支持多用户和扩展的自托管 RSS 阅读器",
+      "tags": ["RSS", "阅读", "Web"],
+      "image": "freshrss/freshrss:1.30.4",
+      "ports": [
+        {
+          "container": 80,
+          "host": 8082,
+          "web": true
+        }
+      ],
+      "volumes": [
+        {
+          "container": "/var/www/FreshRSS/data",
+          "host": "data"
+        }
+      ],
+      "environment": {
+        "TZ": "Asia/Shanghai"
+      }
     }
   ]
 }
