@@ -867,43 +867,9 @@ main {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   font-size: 11px;
-}
-
-.app-card__ports {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.app-card__ports > svg {
-  flex: none;
-}
-
-.app-card__port {
-  min-height: 40px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background: var(--blue-soft);
-  color: #1f58d4;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
-
-.app-card__port small {
-  color: #5576b5;
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
 }
 
 .install-button {
@@ -932,13 +898,6 @@ main {
 
 .install-button:not(:disabled):active {
   scale: 0.96;
-}
-
-.install-button--installed {
-  border-color: #d8dee7;
-  background: #f1f3f6;
-  color: #657084;
-  opacity: 1;
 }
 
 .empty-state {

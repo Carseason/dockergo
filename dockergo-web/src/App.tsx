@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useState } from "react"
 import { createPortal } from "react-dom"
 import { Catalog } from "./components/Catalog"
 import { ContainerDetailsDialog } from "./components/ContainerDetailsDialog"
@@ -11,7 +11,6 @@ import { useCatalog } from "./hooks/useCatalog"
 import { useContainers } from "./hooks/useContainers"
 import { useInstaller } from "./hooks/useInstaller"
 import type { DockerContainer } from "./types"
-import { normalizeDockerImage } from "./utils/dockerImage"
 
 type ToastNotice = {
   id: number
@@ -72,16 +71,6 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
   const installer = useInstaller()
   const docker = useContainers(handleContainerError)
   const catalog = useCatalog(handleCatalogError)
-
-  const installedAppImages = useMemo(
-    () =>
-      new Set(
-        docker.containers.map((container) =>
-          normalizeDockerImage(container.image),
-        ),
-      ),
-    [docker.containers],
-  )
 
   const announceInstallSuccess = useCallback(() => {
     if (!installer.lastInstalledApp) return
@@ -199,7 +188,6 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
             <Catalog
               apps={catalog.apps}
               containers={docker.containers}
-              installedAppImages={installedAppImages}
               appsLoading={catalog.loading}
               containersLoading={docker.loading}
               pendingContainerId={docker.pendingContainerId}

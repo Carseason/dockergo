@@ -8,7 +8,6 @@ import type {
   DockerContainer,
   DockerContainerAction,
 } from "../types"
-import { normalizeDockerImage } from "../utils/dockerImage"
 import { AppCard } from "./AppCard"
 import { ContainerCard } from "./ContainerCard"
 
@@ -17,7 +16,6 @@ const catalogTabs = ["已安装", "应用市场"]
 type CatalogProps = {
   apps: CatalogApp[]
   containers: DockerContainer[]
-  installedAppImages: Set<string>
   appsLoading: boolean
   containersLoading: boolean
   pendingContainerId: string
@@ -35,7 +33,6 @@ type CatalogProps = {
 export function Catalog({
   apps,
   containers,
-  installedAppImages,
   appsLoading,
   containersLoading,
   pendingContainerId,
@@ -127,14 +124,7 @@ export function Catalog({
       ) : apps.length > 0 ? (
         <div className="app-grid">
           {apps.map((app) => (
-            <AppCard
-              key={app.id}
-              app={app}
-              installed={installedAppImages.has(
-                normalizeDockerImage(app.image),
-              )}
-              onInstall={onInstall}
-            />
+            <AppCard key={app.id} app={app} onInstall={onInstall} />
           ))}
         </div>
       ) : (
