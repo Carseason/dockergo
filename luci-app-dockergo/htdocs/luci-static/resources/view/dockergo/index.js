@@ -64,13 +64,26 @@ return view.extend({
 		const shadow = host.attachShadow({ mode: 'open' });
 		const style = document.createElement('style');
 		const mount = document.createElement('div');
+		const overlayHost = document.createElement('div');
+		const overlayShadow = overlayHost.attachShadow({ mode: 'open' });
+		const overlayStyle = document.createElement('style');
+		const overlayMount = document.createElement('div');
 		style.textContent = styleText;
 		mount.id = 'dockergo-app';
+		overlayHost.id = 'dockergo-overlay-root';
+		overlayHost.style.cssText = 'position:fixed;inset:0;z-index:10000;pointer-events:none';
+		overlayStyle.textContent = styleText;
+		overlayMount.id = 'dockergo-overlay';
+		overlayMount.style.cssText = 'position:fixed;inset:0;pointer-events:none';
 		shadow.appendChild(style);
 		shadow.appendChild(mount);
+		overlayShadow.appendChild(overlayStyle);
+		overlayShadow.appendChild(overlayMount);
+		document.body.appendChild(overlayHost);
 
-		window.DockerGoMount(mount);
+		window.DockerGoMount(mount, overlayMount);
 		this.mountNode = mount;
+		this.overlayHost = overlayHost;
 
 		return host;
 	},
@@ -79,7 +92,11 @@ return view.extend({
 		if (this.mountNode && window.DockerGoUnmount)
 			window.DockerGoUnmount(this.mountNode);
 
+		if (this.overlayHost)
+			this.overlayHost.remove();
+
 		this.mountNode = null;
+		this.overlayHost = null;
 	},
 
 	handleSave: null,

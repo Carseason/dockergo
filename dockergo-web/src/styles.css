@@ -863,6 +863,7 @@ main {
   position: fixed;
   inset: 0;
   z-index: 30;
+  pointer-events: auto;
   padding: 20px;
   display: grid;
   place-items: center;

@@ -5,21 +5,21 @@ import "./styles.css"
 
 declare global {
   interface Window {
-    DockerGoMount?: (element: HTMLElement) => void
+    DockerGoMount?: (element: HTMLElement, overlayElement: HTMLElement) => void
     DockerGoUnmount?: (element: HTMLElement) => void
   }
 }
 
 const roots = new WeakMap<HTMLElement, Root>()
 
-function mountDockerGo(element: HTMLElement) {
+function mountDockerGo(element: HTMLElement, overlayElement: HTMLElement) {
   if (roots.has(element)) return
 
   const root = createRoot(element)
   roots.set(element, root)
   root.render(
     <StrictMode>
-      <App />
+      <App overlayRoot={overlayElement} />
     </StrictMode>,
   )
 }
@@ -33,4 +33,9 @@ window.DockerGoMount = mountDockerGo
 window.DockerGoUnmount = unmountDockerGo
 
 const standaloneRoot = document.getElementById("dockergo-standalone-root")
-if (standaloneRoot) mountDockerGo(standaloneRoot)
+if (standaloneRoot) {
+  const standaloneOverlay = document.createElement("div")
+  standaloneOverlay.id = "dockergo-standalone-overlay"
+  document.body.appendChild(standaloneOverlay)
+  mountDockerGo(standaloneRoot, standaloneOverlay)
+}

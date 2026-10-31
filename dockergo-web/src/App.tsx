@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { createPortal } from "react-dom"
 import { Catalog } from "./components/Catalog"
 import { ContainerDetailsDialog } from "./components/ContainerDetailsDialog"
 import { Hero } from "./components/Hero"
@@ -9,7 +10,7 @@ import { useContainers } from "./hooks/useContainers"
 import { useInstaller } from "./hooks/useInstaller"
 import type { DockerContainer } from "./types"
 
-export default function App() {
+export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
   const [activeTab, setActiveTab] = useState("已安装")
   const [detailsContainer, setDetailsContainer] =
     useState<DockerContainer | null>(null)
@@ -54,40 +55,8 @@ export default function App() {
       ?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
-  return (
-    <div className="app-shell">
-      <a className="skip-link" href="#main-content">
-        跳到主要内容
-      </a>
-      <main id="main-content">
-        <header className="topbar">
-          <div>
-            <h1>应用商店</h1>
-            <p>发现并快速部署你需要的服务</p>
-          </div>
-        </header>
-
-        <div className="content">
-          <Hero onBrowse={browseAllApps} />
-
-          <Catalog
-            apps={apps}
-            containers={docker.containers}
-            installedAppImages={installedAppImages}
-            containersLoading={docker.loading}
-            containersError={docker.error}
-            pendingContainerId={docker.pendingContainerId}
-            containerActionError={docker.actionError}
-            activeTab={activeTab}
-            onTabChange={selectTab}
-            onInstall={installer.openInstaller}
-            onRefreshContainers={() => void docker.refresh()}
-            onControlContainer={(id, action) => void docker.control(id, action)}
-            onInspectContainer={setDetailsContainer}
-          />
-        </div>
-      </main>
-
+  const overlays = (
+    <>
       {installer.selectedApp && installer.configuration && (
         <InstallDialog
           app={installer.selectedApp}
@@ -113,6 +82,47 @@ export default function App() {
         !installer.selectedApp && (
           <Toast appName={installer.lastInstalledApp} />
         )}
-    </div>
+    </>
+  )
+
+  return (
+    <>
+      <div className="app-shell">
+        <a className="skip-link" href="#main-content">
+          跳到主要内容
+        </a>
+        <main id="main-content">
+          <header className="topbar">
+            <div>
+              <h1>应用商店</h1>
+              <p>发现并快速部署你需要的服务</p>
+            </div>
+          </header>
+
+          <div className="content">
+            <Hero onBrowse={browseAllApps} />
+
+            <Catalog
+              apps={apps}
+              containers={docker.containers}
+              installedAppImages={installedAppImages}
+              containersLoading={docker.loading}
+              containersError={docker.error}
+              pendingContainerId={docker.pendingContainerId}
+              containerActionError={docker.actionError}
+              activeTab={activeTab}
+              onTabChange={selectTab}
+              onInstall={installer.openInstaller}
+              onRefreshContainers={() => void docker.refresh()}
+              onControlContainer={(id, action) =>
+                void docker.control(id, action)
+              }
+              onInspectContainer={setDetailsContainer}
+            />
+          </div>
+        </main>
+      </div>
+      {createPortal(overlays, overlayRoot)}
+    </>
   )
 }
