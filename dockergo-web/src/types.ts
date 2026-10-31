@@ -107,7 +107,6 @@ export type DockerContainerInspectResponse = {
   error?: DockerApiError
 }
 
-export type StoreView = "market" | "installed"
 export type InstallPhase = "configure" | "installing" | "complete"
 
 export type InstallConfiguration = {

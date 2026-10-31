@@ -8,11 +8,10 @@ import { Toast } from "./components/Toast"
 import { apps } from "./data/apps"
 import { useContainers } from "./hooks/useContainers"
 import { useInstaller } from "./hooks/useInstaller"
-import type { DockerContainer, StoreView } from "./types"
+import type { DockerContainer } from "./types"
 
 export default function App() {
-  const [view, setView] = useState<StoreView>("installed")
-  const [activeCategory, setActiveCategory] = useState("全部")
+  const [activeCategory, setActiveCategory] = useState("已安装")
   const [query, setQuery] = useState("")
   const [detailsContainer, setDetailsContainer] =
     useState<DockerContainer | null>(null)
@@ -77,18 +76,16 @@ export default function App() {
 
   const showInstalledApps = () => {
     installer.closeInstaller()
-    setView("installed")
-    setActiveCategory("全部")
+    setActiveCategory("已安装")
     void docker.refresh()
   }
 
-  const selectView = (nextView: StoreView) => {
-    setView(nextView)
-    if (nextView === "installed") void docker.refresh()
+  const selectCategory = (category: string) => {
+    setActiveCategory(category)
+    if (category === "已安装") void docker.refresh()
   }
 
   const browseAllApps = () => {
-    setView("market")
     setActiveCategory("全部")
     document
       .getElementById("catalog")
@@ -120,38 +117,18 @@ export default function App() {
         </header>
 
         <div className="content">
-          <div className="store-tabs" aria-label="应用商店视图">
-            <button
-              type="button"
-              className={view === "installed" ? "active" : ""}
-              aria-pressed={view === "installed"}
-              onClick={() => selectView("installed")}
-            >
-              已安装 <span>{docker.containers.length}</span>
-            </button>
-            <button
-              type="button"
-              className={view === "market" ? "active" : ""}
-              aria-pressed={view === "market"}
-              onClick={() => selectView("market")}
-            >
-              应用市场
-            </button>
-          </div>
-
-          {view === "market" && <Hero onBrowse={browseAllApps} />}
+          <Hero onBrowse={browseAllApps} />
 
           <Catalog
             apps={filteredApps}
             containers={filteredContainers}
-            view={view}
             installedAppImages={installedAppImages}
             containersLoading={docker.loading}
             containersError={docker.error}
             pendingContainerId={docker.pendingContainerId}
             containerActionError={docker.actionError}
             activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
+            onCategoryChange={selectCategory}
             onInstall={installer.openInstaller}
             onRefreshContainers={() => void docker.refresh()}
             onControlContainer={(id, action) => void docker.control(id, action)}
