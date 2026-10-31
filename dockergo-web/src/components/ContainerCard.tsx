@@ -1,6 +1,5 @@
 import {
   ArrowSquareOut,
-  Cube,
   DotsThreeVertical,
   FileText,
   HardDrives,
@@ -25,6 +24,12 @@ function getStateLabel(state: string) {
   }
 
   return labels[state.toLowerCase()] || state || "未知"
+}
+
+function getContainerInitial(container: DockerContainer) {
+  const source = container.name.trim() || container.id
+
+  return Array.from(source)[0]?.toLocaleUpperCase() || "?"
 }
 
 type PublishedPort = {
@@ -100,6 +105,7 @@ export function ContainerCard({
   const state = container.state.toLowerCase() || "unknown"
   const control = getContainerAction(state)
   const publishedPorts = getPublishedPorts(container.ports)
+  const initial = getContainerInitial(container)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -129,7 +135,7 @@ export function ContainerCard({
   return (
     <article className="container-card">
       <div className="container-card__icon" aria-hidden="true">
-        <Cube size={24} weight="duotone" />
+        {initial}
       </div>
       <div className="container-card__body">
         <div className="container-card__heading">

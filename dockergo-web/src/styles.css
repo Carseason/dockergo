@@ -440,6 +440,9 @@ main {
   border-radius: 11px;
   background: var(--blue-soft);
   color: var(--blue);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .container-card__body {
