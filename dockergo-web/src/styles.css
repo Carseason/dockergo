@@ -648,6 +648,108 @@ main {
   overflow-wrap: anywhere;
 }
 
+.container-card__ports {
+  flex-wrap: wrap;
+}
+
+.container-card__ports > svg {
+  flex: none;
+}
+
+.container-card__ports a {
+  min-height: 28px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--blue-soft);
+  color: #1f58d4;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease, scale 120ms ease;
+}
+
+.container-card__ports a:hover {
+  background: var(--blue);
+  color: #fff;
+}
+
+.container-card__ports a:active {
+  scale: 0.96;
+}
+
+.container-card__ports .container-card__port-label {
+  min-height: 28px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #f0f3f8;
+  color: #687489;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.container-card__actions {
+  min-height: 40px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.container-card__error {
+  min-width: 0;
+  margin-right: auto;
+  color: #b52d45;
+  font-size: 10px;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.container-control {
+  min-width: 82px;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid #cbd8f5;
+  border-radius: 8px;
+  background: #f1f5ff;
+  color: #1f58d4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 750;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, scale 120ms ease;
+}
+
+.container-control:not(:disabled):hover {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.container-control:not(:disabled):active {
+  scale: 0.96;
+}
+
+.container-control--pause {
+  border-color: #ead7a5;
+  background: #fff8e8;
+  color: #916108;
+}
+
+.container-control--pause:not(:disabled):hover {
+  border-color: #b87908;
+  background: #b87908;
+}
+
+.container-control:disabled {
+  opacity: 0.65;
+}
+
 .app-card {
   min-width: 0;
   padding: 18px;

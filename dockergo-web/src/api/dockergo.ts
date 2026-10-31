@@ -1,7 +1,15 @@
-import type { DockerContainerListResponse } from "../types"
+import type {
+  DockerContainerAction,
+  DockerContainerActionResponse,
+  DockerContainerListResponse,
+} from "../types"
 
 type LuCIBridge = {
   listContainers: () => Promise<DockerContainerListResponse>
+  controlContainer: (
+    id: string,
+    action: DockerContainerAction,
+  ) => Promise<DockerContainerActionResponse>
 }
 
 type LuCIWindow = Window & {
@@ -13,8 +21,8 @@ type LuCIWindow = Window & {
   }
 }
 
-type UbusResponse = {
-  result?: [number, DockerContainerListResponse?]
+type UbusResponse<T,> = {
+  result?: [number, T?]
   error?: {
     code?: number
     message?: string
@@ -29,9 +37,11 @@ function getLuCIWindow(): LuCIWindow | undefined {
   }
 }
 
-async function callUbusDirectly(
+async function callUbusDirectly<T>(
   luciWindow: LuCIWindow,
-): Promise<DockerContainerListResponse> {
+  method: string,
+  parameters: Record<string, string> = {},
+): Promise<T> {
   const sessionId =
     luciWindow.L?.env?.sessionid ||
     window.sessionStorage.getItem("dockergo.ubusSession")
@@ -51,9 +61,9 @@ async function callUbusDirectly(
     },
     body: JSON.stringify({
       jsonrpc: "2.0",
-      id: 1,
+      id: Date.now(),
       method: "call",
-      params: [sessionId, "luci.dockergo", "list", {}],
+      params: [sessionId, "luci.dockergo", method, parameters],
     }),
   })
 
@@ -61,7 +71,7 @@ async function callUbusDirectly(
     throw new Error(`DockerGo 接口请求失败（HTTP ${response.status}）`)
   }
 
-  const payload = (await response.json()) as UbusResponse
+  const payload = (await response.json()) as UbusResponse<T>
   if (payload.error) {
     throw new Error(
       payload.error.message || `ubus 错误 ${payload.error.code ?? "unknown"}`,
@@ -82,5 +92,24 @@ export async function listDockerContainers(): Promise<DockerContainerListRespons
     return luciWindow.DockerGoLuci.listContainers()
   }
 
-  return callUbusDirectly(luciWindow || window as LuCIWindow)
+  return callUbusDirectly<DockerContainerListResponse>(
+    luciWindow || window as LuCIWindow,
+    "list",
+  )
+}
+
+export async function controlDockerContainer(
+  id: string,
+  action: DockerContainerAction,
+): Promise<DockerContainerActionResponse> {
+  const luciWindow = getLuCIWindow()
+  if (luciWindow?.DockerGoLuci?.controlContainer) {
+    return luciWindow.DockerGoLuci.controlContainer(id, action)
+  }
+
+  return callUbusDirectly<DockerContainerActionResponse>(
+    luciWindow || window as LuCIWindow,
+    "control",
+    { id, action },
+  )
 }

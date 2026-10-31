@@ -1,5 +1,12 @@
-import { Cube, HardDrives } from "@phosphor-icons/react"
-import type { DockerContainer } from "../types"
+import {
+  ArrowSquareOut,
+  Cube,
+  HardDrives,
+  Pause,
+  Play,
+  SpinnerGap,
+} from "@phosphor-icons/react"
+import type { DockerContainer, DockerContainerAction } from "../types"
 
 function getStateLabel(state: string) {
   const labels: Record<string, string> = {
@@ -15,8 +22,73 @@ function getStateLabel(state: string) {
   return labels[state.toLowerCase()] || state || "未知"
 }
 
-export function ContainerCard({ container }: { container: DockerContainer }) {
+type PublishedPort = {
+  hostPort: string
+  containerPort: string
+  protocol: string
+}
+
+function getPublishedPorts(ports: string): PublishedPort[] {
+  const published = new Map<string, PublishedPort>()
+
+  for (const value of ports.split(",")) {
+    const match = value.trim().match(/:(\d+)->(\d+)\/(tcp|udp)$/i)
+    if (!match) continue
+
+    const port = {
+      hostPort: match[1],
+      containerPort: match[2],
+      protocol: match[3].toLowerCase(),
+    }
+    published.set(`${port.hostPort}/${port.protocol}`, port)
+  }
+
+  return [...published.values()]
+}
+
+function getPortUrl(hostPort: string) {
+  const hostname = window.location.hostname.includes(":")
+    ? `[${window.location.hostname}]`
+    : window.location.hostname
+  return `http://${hostname}:${hostPort}`
+}
+
+function getContainerAction(
+  state: string,
+): {
+  action: DockerContainerAction
+  label: string
+} | null {
+  switch (state) {
+    case "running":
+      return { action: "pause", label: "暂停" }
+    case "paused":
+      return { action: "unpause", label: "继续" }
+    case "created":
+    case "exited":
+    case "dead":
+      return { action: "start", label: "启动" }
+    default:
+      return null
+  }
+}
+
+type ContainerCardProps = {
+  container: DockerContainer
+  pending: boolean
+  actionError: string
+  onControl: (id: string, action: DockerContainerAction) => void
+}
+
+export function ContainerCard({
+  container,
+  pending,
+  actionError,
+  onControl,
+}: ContainerCardProps) {
   const state = container.state.toLowerCase() || "unknown"
+  const control = getContainerAction(state)
+  const publishedPorts = getPublishedPorts(container.ports)
 
   return (
     <article className="container-card">
@@ -43,11 +115,57 @@ export function ContainerCard({ container }: { container: DockerContainer }) {
           {container.status || container.runningFor}
         </p>
         <div className="container-card__meta">
-          <span>
+          <span className="container-card__ports">
             <HardDrives size={14} />
-            {container.ports || "未暴露端口"}
+            {publishedPorts.length > 0
+              ? publishedPorts.map((port) =>
+                  port.protocol === "tcp" ? (
+                    <a
+                      key={`${port.hostPort}/${port.protocol}`}
+                      href={getPortUrl(port.hostPort)}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={`打开宿主机端口 ${port.hostPort}`}
+                    >
+                      {port.hostPort} → {port.containerPort}/{port.protocol}
+                      <ArrowSquareOut size={12} />
+                    </a>
+                  ) : (
+                    <span
+                      className="container-card__port-label"
+                      key={`${port.hostPort}/${port.protocol}`}
+                    >
+                      {port.hostPort} → {port.containerPort}/{port.protocol}
+                    </span>
+                  ),
+                )
+              : container.ports || "未暴露端口"}
           </span>
           {container.networks && <span>{container.networks}</span>}
+        </div>
+        <div className="container-card__actions">
+          {actionError && (
+            <span className="container-card__error" role="alert">
+              {actionError}
+            </span>
+          )}
+          {control && (
+            <button
+              type="button"
+              className={`container-control container-control--${control.action}`}
+              disabled={pending}
+              onClick={() => onControl(container.id, control.action)}
+            >
+              {pending ? (
+                <SpinnerGap className="is-spinning" size={15} />
+              ) : control.action === "pause" ? (
+                <Pause size={15} weight="fill" />
+              ) : (
+                <Play size={15} weight="fill" />
+              )}
+              {pending ? "处理中" : control.label}
+            </button>
+          )}
         </div>
       </div>
     </article>

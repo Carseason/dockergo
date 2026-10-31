@@ -37,6 +37,15 @@ export type DockerContainerListResponse = {
   error?: DockerApiError
 }
 
+export type DockerContainerAction = "start" | "pause" | "unpause"
+
+export type DockerContainerActionResponse = {
+  success: boolean
+  id?: string
+  action?: DockerContainerAction
+  error?: DockerApiError
+}
+
 export type StoreView = "market" | "installed"
 export type InstallPhase = "configure" | "installing" | "complete"
 

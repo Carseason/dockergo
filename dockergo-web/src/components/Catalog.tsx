@@ -5,7 +5,12 @@ import {
   WarningCircle,
 } from "@phosphor-icons/react"
 import { categories } from "../data/apps"
-import type { CatalogApp, DockerContainer, StoreView } from "../types"
+import type {
+  CatalogApp,
+  DockerContainer,
+  DockerContainerAction,
+  StoreView,
+} from "../types"
 import { AppCard } from "./AppCard"
 import { ContainerCard } from "./ContainerCard"
 
@@ -16,10 +21,16 @@ type CatalogProps = {
   installedAppImages: Set<string>
   containersLoading: boolean
   containersError: string
+  pendingContainerId: string
+  containerActionError: {
+    id: string
+    message: string
+  }
   activeCategory: string
   onCategoryChange: (category: string) => void
   onInstall: (app: CatalogApp) => void
   onRefreshContainers: () => void
+  onControlContainer: (id: string, action: DockerContainerAction) => void
 }
 
 export function Catalog({
@@ -29,10 +40,13 @@ export function Catalog({
   installedAppImages,
   containersLoading,
   containersError,
+  pendingContainerId,
+  containerActionError,
   activeCategory,
   onCategoryChange,
   onInstall,
   onRefreshContainers,
+  onControlContainer,
 }: CatalogProps) {
   const isMarket = view === "market"
 
@@ -131,7 +145,17 @@ export function Catalog({
       ) : containers.length > 0 ? (
         <div className="container-grid">
           {containers.map((container) => (
-            <ContainerCard key={container.id} container={container} />
+            <ContainerCard
+              key={container.id}
+              container={container}
+              pending={pendingContainerId === container.id}
+              actionError={
+                containerActionError.id === container.id
+                  ? containerActionError.message
+                  : ""
+              }
+              onControl={onControlContainer}
+            />
           ))}
         </div>
       ) : (

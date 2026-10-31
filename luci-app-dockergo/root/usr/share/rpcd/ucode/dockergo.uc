@@ -82,10 +82,71 @@ function list_containers() {
 	};
 }
 
+function control_container(request) {
+	const container_id = string_value(request?.args?.id);
+	const action = string_value(request?.args?.action);
+
+	if (match(container_id, /^[a-f0-9]{12,64}$/) == null) {
+		return {
+			success: false,
+			error: {
+				code: 'INVALID_CONTAINER_ID',
+				message: '容器 ID 无效',
+			},
+		};
+	}
+
+	if (action != 'start' && action != 'pause' && action != 'unpause') {
+		return {
+			success: false,
+			error: {
+				code: 'INVALID_ACTION',
+				message: '不支持的容器操作',
+			},
+		};
+	}
+
+	const process = popen(`/usr/bin/docker ${action} ${container_id} 2>&1`, 'r');
+	if (!process) {
+		return {
+			success: false,
+			error: {
+				code: 'DOCKER_EXEC_FAILED',
+				message: '无法启动 Docker 命令',
+			},
+		};
+	}
+
+	const output = trim(process.read('all') || '');
+	const exit_code = process.close();
+	if (exit_code != 0) {
+		return {
+			success: false,
+			error: {
+				code: 'DOCKER_ACTION_FAILED',
+				message: output || 'Docker 容器操作失败',
+			},
+		};
+	}
+
+	return {
+		success: true,
+		id: container_id,
+		action,
+	};
+}
+
 return {
 	'luci.dockergo': {
 		list: {
 			call: list_containers,
+		},
+		control: {
+			args: {
+				id: '',
+				action: '',
+			},
+			call: control_container,
 		},
 	},
 };

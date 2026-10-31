@@ -7,10 +7,17 @@ const callListContainers = rpc.declare({
 	method: 'list'
 });
 
+const callControlContainer = rpc.declare({
+	object: 'luci.dockergo',
+	method: 'control',
+	params: [ 'id', 'action' ]
+});
+
 return view.extend({
 	render: function() {
 		window.DockerGoLuci = Object.freeze({
-			listContainers: callListContainers
+			listContainers: callListContainers,
+			controlContainer: callControlContainer
 		});
 
 		return E('iframe', {

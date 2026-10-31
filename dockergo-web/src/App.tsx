@@ -145,10 +145,13 @@ export default function App() {
             installedAppImages={installedAppImages}
             containersLoading={docker.loading}
             containersError={docker.error}
+            pendingContainerId={docker.pendingContainerId}
+            containerActionError={docker.actionError}
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
             onInstall={installer.openInstaller}
             onRefreshContainers={() => void docker.refresh()}
+            onControlContainer={(id, action) => void docker.control(id, action)}
           />
         </div>
       </main>

@@ -1,9 +1,14 @@
 {
 	"luci-app-dockergo": {
-		"description": "Grant read-only access to DockerGo container data",
+		"description": "Grant access to DockerGo container data and lifecycle controls",
 		"read": {
 			"ubus": {
 				"luci.dockergo": [ "list" ]
+			}
+		},
+		"write": {
+			"ubus": {
+				"luci.dockergo": [ "control" ]
 			}
 		}
 	}
