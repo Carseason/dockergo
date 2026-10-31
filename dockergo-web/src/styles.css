@@ -468,23 +468,16 @@ main {
   font-size: 15px;
 }
 
-.container-card__heading code {
-  padding: 3px 6px;
-  border-radius: 5px;
-  background: #f0f3f8;
+.container-card__id {
+  margin-top: 12px;
   color: #687489;
+  display: block;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 10px;
-}
-
-.container-card__heading-actions {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  font-size: 11px;
 }
 
 .container-more {
+  flex: none;
   position: relative;
 }
 
@@ -615,13 +608,12 @@ main {
 }
 
 .container-card__image {
-  margin: 12px 0 0;
-  overflow: hidden;
+  margin: 5px 0 0;
+  overflow-wrap: anywhere;
   color: #3d4a61;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
   font-size: 12px;
+  line-height: 1.45;
 }
 
 .container-card__status {

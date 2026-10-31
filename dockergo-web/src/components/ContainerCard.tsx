@@ -142,52 +142,52 @@ export function ContainerCard({
               {getStateLabel(container.state)}
             </span>
           </div>
-          <div className="container-card__heading-actions">
-            <code title={container.id}>{container.id.slice(0, 12)}</code>
-            <div className="container-more" ref={menuRef}>
-              <button
-                type="button"
-                className="container-more__trigger"
-                aria-label={`打开 ${container.name || "容器"} 的更多选项`}
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                disabled={pending}
-                onClick={() => setMenuOpen((open) => !open)}
-              >
-                <DotsThreeVertical size={20} weight="bold" />
-              </button>
-              {menuOpen && (
-                <div className="container-more__menu" role="menu">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => selectMenuAction(() => onInspect(container))}
-                  >
-                    <Info size={16} />
-                    详情
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => selectMenuAction(() => onLogs(container))}
-                  >
-                    <FileText size={16} />
-                    日志
-                  </button>
-                  <button
-                    type="button"
-                    className="container-more__danger"
-                    role="menuitem"
-                    onClick={() => selectMenuAction(() => onRemove(container))}
-                  >
-                    <Trash size={16} />
-                    卸载
-                  </button>
-                </div>
-              )}
-            </div>
+          <div className="container-more" ref={menuRef}>
+            <button
+              type="button"
+              className="container-more__trigger"
+              aria-label={`打开 ${container.name || "容器"} 的更多选项`}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              disabled={pending}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <DotsThreeVertical size={20} weight="bold" />
+            </button>
+            {menuOpen && (
+              <div className="container-more__menu" role="menu">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => selectMenuAction(() => onInspect(container))}
+                >
+                  <Info size={16} />
+                  详情
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => selectMenuAction(() => onLogs(container))}
+                >
+                  <FileText size={16} />
+                  日志
+                </button>
+                <button
+                  type="button"
+                  className="container-more__danger"
+                  role="menuitem"
+                  onClick={() => selectMenuAction(() => onRemove(container))}
+                >
+                  <Trash size={16} />
+                  卸载
+                </button>
+              </div>
+            )}
           </div>
         </div>
+        <code className="container-card__id" title={container.id}>
+          {container.id.slice(0, 12)}
+        </code>
         <p className="container-card__image" title={container.image}>
           {container.image}
         </p>
