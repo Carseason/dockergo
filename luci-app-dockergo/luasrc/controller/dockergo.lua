@@ -30,7 +30,7 @@ local function write_json(status, payload)
 	http.status(status)
 	http.header("Cache-Control", "no-store")
 	http.prepare_content("application/json")
-	http.write_json(payload)
+	http.write(jsonc.stringify(payload))
 end
 
 local function write_error(status, code, message, extra)
