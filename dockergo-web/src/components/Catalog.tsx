@@ -2,7 +2,6 @@ import {
   ArrowClockwise,
   MagnifyingGlass,
   SpinnerGap,
-  WarningCircle,
 } from "@phosphor-icons/react"
 import { catalogTabs } from "../data/apps"
 import type {
@@ -18,12 +17,7 @@ type CatalogProps = {
   containers: DockerContainer[]
   installedAppImages: Set<string>
   containersLoading: boolean
-  containersError: string
   pendingContainerId: string
-  containerActionError: {
-    id: string
-    message: string
-  }
   activeTab: string
   onTabChange: (tab: string) => void
   onInstall: (app: CatalogApp) => void
@@ -37,9 +31,7 @@ export function Catalog({
   containers,
   installedAppImages,
   containersLoading,
-  containersError,
   pendingContainerId,
-  containerActionError,
   activeTab,
   onTabChange,
   onInstall,
@@ -93,19 +85,6 @@ export function Catalog({
             <strong>正在读取 Docker 容器</strong>
             <span>正在通过 iStoreOS 获取最新状态</span>
           </div>
-        ) : containersError ? (
-          <div className="empty-state empty-state--error" role="alert">
-            <WarningCircle size={28} />
-            <strong>无法获取容器列表</strong>
-            <span>{containersError}</span>
-            <button
-              type="button"
-              className="retry-button"
-              onClick={onRefreshContainers}
-            >
-              重试
-            </button>
-          </div>
         ) : containers.length > 0 ? (
           <div className="container-grid">
             {containers.map((container) => (
@@ -113,11 +92,6 @@ export function Catalog({
                 key={container.id}
                 container={container}
                 pending={pendingContainerId === container.id}
-                actionError={
-                  containerActionError.id === container.id
-                    ? containerActionError.message
-                    : ""
-                }
                 onControl={onControlContainer}
                 onInspect={onInspectContainer}
               />

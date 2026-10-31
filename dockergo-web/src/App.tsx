@@ -1,21 +1,54 @@
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import { Catalog } from "./components/Catalog"
 import { ContainerDetailsDialog } from "./components/ContainerDetailsDialog"
 import { Hero } from "./components/Hero"
 import { InstallDialog } from "./components/InstallDialog"
-import { Toast } from "./components/Toast"
+import { Toast, type ToastVariant } from "./components/Toast"
 import { apps } from "./data/apps"
 import { useContainers } from "./hooks/useContainers"
 import { useInstaller } from "./hooks/useInstaller"
 import type { DockerContainer } from "./types"
 
+type ToastNotice = {
+  id: number
+  variant: ToastVariant
+  title: string
+  message: string
+}
+
 export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
   const [activeTab, setActiveTab] = useState("已安装")
   const [detailsContainer, setDetailsContainer] =
     useState<DockerContainer | null>(null)
+  const [toast, setToast] = useState<ToastNotice | null>(null)
+
+  const showToast = useCallback(
+    (variant: ToastVariant, title: string, message: string) => {
+      setToast({ id: Date.now(), variant, title, message })
+    },
+    [],
+  )
+
+  const dismissToast = useCallback(() => setToast(null), [])
+  const handleContainerError = useCallback(
+    (message: string, operation: "list" | "control") => {
+      showToast(
+        "error",
+        operation === "list" ? "无法获取容器列表" : "容器操作失败",
+        message,
+      )
+    },
+    [showToast],
+  )
+  const handleDetailsError = useCallback(
+    (message: string) => showToast("error", "无法读取容器详情", message),
+    [showToast],
+  )
+  const closeDetails = useCallback(() => setDetailsContainer(null), [])
+
   const installer = useInstaller()
-  const docker = useContainers()
+  const docker = useContainers(handleContainerError)
 
   const installedAppImages = useMemo(() => {
     const normalizeImage = (image: string) => {
@@ -37,11 +70,26 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
     )
   }, [docker.containers])
 
-  const showInstalledApps = () => {
+  const announceInstallSuccess = useCallback(() => {
+    if (!installer.lastInstalledApp) return
+    showToast(
+      "success",
+      "部署任务已完成",
+      `${installer.lastInstalledApp} 已成功安装并运行`,
+    )
+  }, [installer.lastInstalledApp, showToast])
+
+  const closeInstaller = useCallback(() => {
+    if (installer.phase === "complete") announceInstallSuccess()
+    installer.closeInstaller()
+  }, [announceInstallSuccess, installer.closeInstaller, installer.phase])
+
+  const showInstalledApps = useCallback(() => {
+    announceInstallSuccess()
     installer.closeInstaller()
     setActiveTab("已安装")
     void docker.refresh()
-  }
+  }, [announceInstallSuccess, docker.refresh, installer.closeInstaller])
 
   const selectTab = (tab: string) => {
     setActiveTab(tab)
@@ -65,7 +113,7 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
           logs={installer.logs}
           onConfigurationChange={installer.updateConfiguration}
           onInstall={installer.startInstallation}
-          onClose={installer.closeInstaller}
+          onClose={closeInstaller}
           onShowInstalled={showInstalledApps}
         />
       )}
@@ -73,15 +121,20 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
       {detailsContainer && (
         <ContainerDetailsDialog
           container={detailsContainer}
-          onClose={() => setDetailsContainer(null)}
+          onClose={closeDetails}
+          onError={handleDetailsError}
         />
       )}
 
-      {installer.lastInstalledApp &&
-        installer.phase === "complete" &&
-        !installer.selectedApp && (
-          <Toast appName={installer.lastInstalledApp} />
-        )}
+      {toast && (
+        <Toast
+          key={toast.id}
+          variant={toast.variant}
+          title={toast.title}
+          message={toast.message}
+          onDismiss={dismissToast}
+        />
+      )}
     </>
   )
 
@@ -107,9 +160,7 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
               containers={docker.containers}
               installedAppImages={installedAppImages}
               containersLoading={docker.loading}
-              containersError={docker.error}
               pendingContainerId={docker.pendingContainerId}
-              containerActionError={docker.actionError}
               activeTab={activeTab}
               onTabChange={selectTab}
               onInstall={installer.openInstaller}

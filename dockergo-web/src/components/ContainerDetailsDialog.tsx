@@ -4,7 +4,6 @@ import {
   HardDrives,
   Network,
   SpinnerGap,
-  WarningCircle,
   X,
 } from "@phosphor-icons/react"
 import { useEffect, useRef, useState } from "react"
@@ -14,6 +13,7 @@ import type { DockerContainer, DockerContainerDetails } from "../types"
 type ContainerDetailsDialogProps = {
   container: DockerContainer
   onClose: () => void
+  onError: (message: string) => void
 }
 
 function formatDate(value: string) {
@@ -29,10 +29,10 @@ function displayName(value: string) {
 export function ContainerDetailsDialog({
   container,
   onClose,
+  onError,
 }: ContainerDetailsDialogProps) {
   const titleRef = useRef<HTMLHeadingElement>(null)
   const [details, setDetails] = useState<DockerContainerDetails | null>(null)
-  const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -54,11 +54,12 @@ export function ContainerDetailsDialog({
       })
       .catch((inspectError: unknown) => {
         if (!active) return
-        setError(
+        onError(
           inspectError instanceof Error
             ? inspectError.message
             : "无法读取容器详情",
         )
+        onClose()
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -68,7 +69,7 @@ export function ContainerDetailsDialog({
       active = false
       document.removeEventListener("keydown", handleKeyDown)
     }
-  }, [container.id, onClose])
+  }, [container.id, onClose, onError])
 
   const command = details
     ? [details.command.path, ...details.command.args].filter(Boolean).join(" ")
@@ -116,14 +117,6 @@ export function ContainerDetailsDialog({
           <div className="container-details__message" role="status">
             <SpinnerGap className="is-spinning" size={25} />
             <span>正在读取容器详情</span>
-          </div>
-        ) : error ? (
-          <div
-            className="container-details__message container-details__message--error"
-            role="alert"
-          >
-            <WarningCircle size={25} />
-            <span>{error}</span>
           </div>
         ) : details ? (
           <div className="container-details__content">

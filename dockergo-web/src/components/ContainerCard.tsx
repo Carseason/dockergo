@@ -77,7 +77,6 @@ function getContainerAction(
 type ContainerCardProps = {
   container: DockerContainer
   pending: boolean
-  actionError: string
   onControl: (id: string, action: DockerContainerAction) => void
   onInspect: (container: DockerContainer) => void
 }
@@ -85,7 +84,6 @@ type ContainerCardProps = {
 export function ContainerCard({
   container,
   pending,
-  actionError,
   onControl,
   onInspect,
 }: ContainerCardProps) {
@@ -118,11 +116,6 @@ export function ContainerCard({
           {container.status || container.runningFor}
           {container.networks && <span> · {container.networks}</span>}
         </p>
-        {actionError && (
-          <p className="container-card__error" role="alert">
-            {actionError}
-          </p>
-        )}
         <div className="container-card__footer">
           <div className="container-card__ports">
             <HardDrives size={15} aria-hidden="true" />
