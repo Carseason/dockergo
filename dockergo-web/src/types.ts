@@ -1,16 +1,29 @@
-export type AppColor = "indigo" | "blue" | "red" | "green" | "teal" | "rose"
+export type CatalogPort = {
+  container: number
+  host: number
+  web: boolean
+}
+
+export type CatalogVolume = {
+  container: string
+  host: string
+}
 
 export type CatalogApp = {
-  name: string
-  image: string
+  id: string
+  title: string
   description: string
-  category: string
-  color: AppColor
-  mark: string
-  downloads: string
-  version: string
-  verified: boolean
-  defaultPort: string
+  tags: string[]
+  image: string
+  ports: CatalogPort[]
+  volumes: CatalogVolume[]
+  environment: Record<string, string>
+  command: string[]
+}
+
+export type CatalogResponse = {
+  schemaVersion: number
+  apps: CatalogApp[]
 }
 
 export type DockerContainer = {

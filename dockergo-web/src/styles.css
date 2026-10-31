@@ -816,10 +816,16 @@ main {
 }
 
 .category-label {
-  display: block;
-  margin-top: 4px;
   color: #737f93;
   font-size: 11px;
+}
+
+.app-card__tags {
+  min-height: 16px;
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
 }
 
 .install-button {
@@ -852,21 +858,6 @@ main {
   color: #5f6b80;
   font-size: 13px;
   line-height: 1.55;
-}
-
-.app-card__meta {
-  padding-top: 10px;
-  border-top: 1px solid #edf0f5;
-  color: #737f93;
-  display: flex;
-  gap: 14px;
-  font-size: 11px;
-}
-
-.app-card__meta span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .empty-state {

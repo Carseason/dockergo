@@ -6,13 +6,52 @@ local sys = require "luci.sys"
 
 local LIST_COMMAND = "/usr/bin/docker container ls --all --no-trunc --format '{{json .}}'"
 local EXIT_MARKER = "__DOCKERGO_EXIT__"
+local CATALOG_PATH = "/usr/share/dockergo/catalog.json"
+local CATALOG_MAX_BYTES = 1024 * 1024
 
 function index()
+	entry({"admin", "services", "dockergo", "api", "catalog"}, call("api_catalog")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "containers"}, call("api_list_containers")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "inspect"}, call("api_inspect_container")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "logs"}, call("api_container_logs")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "control"}, post("api_control_container")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "remove"}, post("api_remove_container")).leaf = true
+end
+
+local function valid_catalog(catalog)
+	if type(catalog) ~= "table" or catalog.schemaVersion ~= 1 or type(catalog.apps) ~= "table" then
+		return false, "应用目录根结构无效"
+	end
+
+	local ids = {}
+	for index, app in ipairs(catalog.apps) do
+		if type(app) ~= "table" or type(app.id) ~= "string" or app.id == "" or
+			type(app.title) ~= "string" or app.title == "" or
+			type(app.description) ~= "string" or type(app.image) ~= "string" or app.image == "" or
+			type(app.tags) ~= "table" then
+			return false, string.format("第 %d 个应用的数据结构无效", index)
+		end
+
+		if ids[app.id] then
+			return false, string.format("应用 ID %s 重复", app.id)
+		end
+		ids[app.id] = true
+
+		if app.ports ~= nil and type(app.ports) ~= "table" then
+			return false, string.format("应用 %s 的端口配置无效", app.id)
+		end
+		if app.volumes ~= nil and type(app.volumes) ~= "table" then
+			return false, string.format("应用 %s 的存储配置无效", app.id)
+		end
+		if app.environment ~= nil and type(app.environment) ~= "table" then
+			return false, string.format("应用 %s 的环境变量配置无效", app.id)
+		end
+		if app.command ~= nil and type(app.command) ~= "table" then
+			return false, string.format("应用 %s 的启动命令无效", app.id)
+		end
+	end
+
+	return true
 end
 
 local function string_value(value)
@@ -50,6 +89,31 @@ local function run(command)
 	local status = tonumber(output:match("\n" .. EXIT_MARKER .. "(%d+)$")) or 255
 	output = output:gsub("\n" .. EXIT_MARKER .. "%d+$", "")
 	return status, output
+end
+
+function api_catalog()
+	local file = io.open(CATALOG_PATH, "r")
+	if not file then
+		write_error(503, "CATALOG_UNAVAILABLE", "应用目录文件不存在")
+		return
+	end
+
+	local contents = file:read("*a") or ""
+	file:close()
+
+	if #contents == 0 or #contents > CATALOG_MAX_BYTES then
+		write_error(502, "CATALOG_INVALID", "应用目录文件为空或超过大小限制")
+		return
+	end
+
+	local catalog = jsonc.parse(contents)
+	local valid, message = valid_catalog(catalog)
+	if not valid then
+		write_error(502, "CATALOG_INVALID", message)
+		return
+	end
+
+	write_json(200, catalog)
 end
 
 local function normalize_container(raw)

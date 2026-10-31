@@ -7,10 +7,11 @@ import { Hero } from "./components/Hero"
 import { InstallDialog } from "./components/InstallDialog"
 import { RemoveContainerDialog } from "./components/RemoveContainerDialog"
 import { Toast, type ToastVariant } from "./components/Toast"
-import { apps } from "./data/apps"
+import { useCatalog } from "./hooks/useCatalog"
 import { useContainers } from "./hooks/useContainers"
 import { useInstaller } from "./hooks/useInstaller"
 import type { DockerContainer } from "./types"
+import { normalizeDockerImage } from "./utils/dockerImage"
 
 type ToastNotice = {
   id: number
@@ -60,32 +61,27 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
     (message: string) => showToast("error", "无法读取容器日志", message),
     [showToast],
   )
+  const handleCatalogError = useCallback(
+    (message: string) => showToast("error", "无法获取应用市场", message),
+    [showToast],
+  )
   const closeDetails = useCallback(() => setDetailsContainer(null), [])
   const closeLogs = useCallback(() => setLogsContainer(null), [])
   const closeRemove = useCallback(() => setRemoveContainer(null), [])
 
   const installer = useInstaller()
   const docker = useContainers(handleContainerError)
+  const catalog = useCatalog(handleCatalogError)
 
-  const installedAppImages = useMemo(() => {
-    const normalizeImage = (image: string) => {
-      const withoutDigest = image.split("@", 1)[0]
-      const lastSlash = withoutDigest.lastIndexOf("/")
-      const lastColon = withoutDigest.lastIndexOf(":")
-      const withoutTag =
-        lastColon > lastSlash
-          ? withoutDigest.slice(0, lastColon)
-          : withoutDigest
-
-      return withoutTag
-        .replace(/^(?:docker\.io|index\.docker\.io)\//, "")
-        .replace(/^library\//, "")
-    }
-
-    return new Set(
-      docker.containers.map((container) => normalizeImage(container.image)),
-    )
-  }, [docker.containers])
+  const installedAppImages = useMemo(
+    () =>
+      new Set(
+        docker.containers.map((container) =>
+          normalizeDockerImage(container.image),
+        ),
+      ),
+    [docker.containers],
+  )
 
   const announceInstallSuccess = useCallback(() => {
     if (!installer.lastInstalledApp) return
@@ -201,14 +197,16 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
             <Hero onBrowse={browseAllApps} />
 
             <Catalog
-              apps={apps}
+              apps={catalog.apps}
               containers={docker.containers}
               installedAppImages={installedAppImages}
+              appsLoading={catalog.loading}
               containersLoading={docker.loading}
               pendingContainerId={docker.pendingContainerId}
               activeTab={activeTab}
               onTabChange={selectTab}
               onInstall={installer.openInstaller}
+              onRefreshApps={() => void catalog.refresh()}
               onRefreshContainers={() => void docker.refresh()}
               onControlContainer={(id, action) =>
                 void docker.control(id, action)

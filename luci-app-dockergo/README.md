@@ -8,11 +8,15 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
+| `GET` | `/catalog` | 获取 `/usr/share/dockergo/catalog.json` 中的应用目录 |
 | `GET` | `/containers` | 获取全部 Docker 容器 |
 | `GET` | `/inspect?id=<容器 ID>` | 获取指定容器详情 |
 | `GET` | `/logs?id=<容器 ID>` | 获取指定容器最近 300 行日志 |
 | `POST` | `/control` | 启动、暂停或恢复容器 |
 | `POST` | `/remove` | 强制停止并删除指定容器，保留镜像与数据卷 |
+
+应用市场由 `/catalog` 返回的数据渲染。后端仅接受 `schemaVersion` 为 `1`、
+应用 ID 唯一且核心字段完整的目录文件；缺失、过大或无法解析的目录会返回明确的 JSON 错误。
 
 `control` 接收 `application/x-www-form-urlencoded` 参数：
 

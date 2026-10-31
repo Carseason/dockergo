@@ -25,10 +25,12 @@ export function InstallDialog({
 }: InstallDialogProps) {
   const titleRef = useRef<HTMLHeadingElement>(null)
   const progress = phase === "complete" ? 100 : Math.min(92, logs.length * 12)
+  const hasVolume = app.volumes.length > 0
+  const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
   const isValid =
     configuration.hostPort.length > 0 &&
     configuration.containerPort.length > 0 &&
-    configuration.dataDirectory.length > 0
+    (!hasVolume || configuration.dataDirectory.length > 0)
 
   useEffect(() => {
     titleRef.current?.focus()
@@ -65,11 +67,8 @@ export function InstallDialog({
           <X size={19} />
         </button>
 
-        <div
-          className={`app-logo modal-logo app-logo--${app.color}`}
-          aria-hidden="true"
-        >
-          {app.mark}
+        <div className="app-logo modal-logo app-logo--blue" aria-hidden="true">
+          {mark}
         </div>
         <span className="modal-kicker">
           {phase === "configure"
@@ -79,7 +78,7 @@ export function InstallDialog({
               : "安装完成"}
         </span>
         <h2 id="install-title" ref={titleRef} tabIndex={-1}>
-          {app.name}
+          {app.title}
         </h2>
         <p>
           {phase === "configure"
@@ -131,26 +130,28 @@ export function InstallDialog({
               </div>
             </fieldset>
 
-            <div className="form-group">
-              <label htmlFor="data-directory">映射目录</label>
-              <div className="directory-input">
-                <span aria-hidden="true">/</span>
-                <input
-                  id="data-directory"
-                  value={configuration.dataDirectory.replace(/^\//, "")}
-                  onChange={(event) =>
-                    onConfigurationChange({
-                      dataDirectory: `/${event.target.value.replace(/^\/+/, "")}`,
-                    })
-                  }
-                  placeholder="docker/apps/app-name"
-                  aria-describedby="data-directory-help"
-                />
+            {hasVolume && (
+              <div className="form-group">
+                <label htmlFor="data-directory">映射目录</label>
+                <div className="directory-input">
+                  <span aria-hidden="true">/</span>
+                  <input
+                    id="data-directory"
+                    value={configuration.dataDirectory.replace(/^\//, "")}
+                    onChange={(event) =>
+                      onConfigurationChange({
+                        dataDirectory: `/${event.target.value.replace(/^\/+/, "")}`,
+                      })
+                    }
+                    placeholder="docker/apps/app-name"
+                    aria-describedby="data-directory-help"
+                  />
+                </div>
+                <small id="data-directory-help">
+                  应用配置和数据将持久化保存在此目录
+                </small>
               </div>
-              <small id="data-directory-help">
-                应用配置和数据将持久化保存在此目录
-              </small>
-            </div>
+            )}
 
             <div className="install-options">
               <label>
@@ -183,8 +184,8 @@ export function InstallDialog({
 
             <div className="install-summary">
               <div>
-                <span>镜像版本</span>
-                <strong>{app.version}</strong>
+                <span>容器镜像</span>
+                <strong>{app.image}</strong>
               </div>
               <div>
                 <span>预计耗时</span>

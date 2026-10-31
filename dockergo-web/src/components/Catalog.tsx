@@ -3,24 +3,28 @@ import {
   MagnifyingGlass,
   SpinnerGap,
 } from "@phosphor-icons/react"
-import { catalogTabs } from "../data/apps"
 import type {
   CatalogApp,
   DockerContainer,
   DockerContainerAction,
 } from "../types"
+import { normalizeDockerImage } from "../utils/dockerImage"
 import { AppCard } from "./AppCard"
 import { ContainerCard } from "./ContainerCard"
+
+const catalogTabs = ["已安装", "应用市场"]
 
 type CatalogProps = {
   apps: CatalogApp[]
   containers: DockerContainer[]
   installedAppImages: Set<string>
+  appsLoading: boolean
   containersLoading: boolean
   pendingContainerId: string
   activeTab: string
   onTabChange: (tab: string) => void
   onInstall: (app: CatalogApp) => void
+  onRefreshApps: () => void
   onRefreshContainers: () => void
   onControlContainer: (id: string, action: DockerContainerAction) => void
   onInspectContainer: (container: DockerContainer) => void
@@ -32,11 +36,13 @@ export function Catalog({
   apps,
   containers,
   installedAppImages,
+  appsLoading,
   containersLoading,
   pendingContainerId,
   activeTab,
   onTabChange,
   onInstall,
+  onRefreshApps,
   onRefreshContainers,
   onControlContainer,
   onInspectContainer,
@@ -52,20 +58,22 @@ export function Catalog({
           <h2>探索应用</h2>
           <p>为你的工作流选择合适的工具</p>
         </div>
-        {isInstalled ? (
-          <button
-            type="button"
-            className="text-button refresh-button"
-            onClick={onRefreshContainers}
-            disabled={containersLoading}
-          >
-            <ArrowClockwise
-              size={14}
-              className={containersLoading ? "is-spinning" : ""}
-            />
-            刷新
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className="text-button refresh-button"
+          onClick={isInstalled ? onRefreshContainers : onRefreshApps}
+          disabled={isInstalled ? containersLoading : appsLoading}
+        >
+          <ArrowClockwise
+            size={14}
+            className={
+              (isInstalled ? containersLoading : appsLoading)
+                ? "is-spinning"
+                : ""
+            }
+          />
+          刷新
+        </button>
       </div>
 
       <div className="category-tabs" aria-label="应用视图">
@@ -110,13 +118,21 @@ export function Catalog({
             <span>设备上还没有创建任何容器</span>
           </div>
         )
+      ) : appsLoading ? (
+        <div className="empty-state" role="status">
+          <SpinnerGap className="is-spinning" size={28} />
+          <strong>正在加载应用市场</strong>
+          <span>正在从 DockerGo 获取应用目录</span>
+        </div>
       ) : apps.length > 0 ? (
         <div className="app-grid">
           {apps.map((app) => (
             <AppCard
-              key={app.name}
+              key={app.id}
               app={app}
-              installed={installedAppImages.has(app.image)}
+              installed={installedAppImages.has(
+                normalizeDockerImage(app.image),
+              )}
               onInstall={onInstall}
             />
           ))}

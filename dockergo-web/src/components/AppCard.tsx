@@ -1,4 +1,3 @@
-import { Check, DownloadSimple } from "@phosphor-icons/react"
 import type { CatalogApp } from "../types"
 
 type AppCardProps = {
@@ -9,25 +8,26 @@ type AppCardProps = {
 
 export function AppCard({ app, installed, onInstall }: AppCardProps) {
   const actionLabel = installed ? "已安装" : "安装"
+  const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
 
   return (
     <article className="app-card">
-      <div className={`app-logo app-logo--${app.color}`} aria-hidden="true">
-        {app.mark}
+      <div className="app-logo app-logo--blue" aria-hidden="true">
+        {mark}
       </div>
       <div className="app-card__body">
         <div className="app-card__heading">
           <div className="app-card__identity">
             <div className="app-card__name">
-              <strong>{app.name}</strong>
-              {app.verified && (
-                <span className="verified-badge" title="官方验证">
-                  <Check size={10} weight="bold" />
-                  <span className="sr-only">官方验证</span>
-                </span>
-              )}
+              <strong>{app.title}</strong>
             </div>
-            <span className="category-label">{app.category}</span>
+            <div className="app-card__tags" aria-label="应用标签">
+              {app.tags.map((tag) => (
+                <span className="category-label" key={tag}>
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
           <button
             type="button"
@@ -41,13 +41,6 @@ export function AppCard({ app, installed, onInstall }: AppCardProps) {
           </button>
         </div>
         <p>{app.description}</p>
-        <div className="app-card__meta">
-          <span>
-            <DownloadSimple size={14} />
-            {app.downloads}
-          </span>
-          <span>v{app.version}</span>
-        </div>
       </div>
     </article>
   )

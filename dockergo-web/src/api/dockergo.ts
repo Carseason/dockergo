@@ -1,4 +1,8 @@
 import type {
+  CatalogApp,
+  CatalogPort,
+  CatalogResponse,
+  CatalogVolume,
   DockerApiError,
   DockerContainerAction,
   DockerContainerActionResponse,
@@ -56,6 +60,108 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return payload
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+function normalizeCatalogPort(value: unknown): CatalogPort | null {
+  if (!isRecord(value)) return null
+
+  const container = value.container
+  const host = value.host
+  const web = value.web
+
+  if (
+    !Number.isInteger(container) ||
+    !Number.isInteger(host) ||
+    typeof web !== "boolean"
+  ) {
+    return null
+  }
+
+  return { container: container as number, host: host as number, web }
+}
+
+function normalizeCatalogVolume(value: unknown): CatalogVolume | null {
+  if (!isRecord(value)) return null
+
+  const container = value.container
+  const host = value.host
+  if (typeof container !== "string" || typeof host !== "string") return null
+
+  return { container, host }
+}
+
+function normalizeCatalogApp(value: unknown): CatalogApp | null {
+  if (!isRecord(value)) return null
+
+  const { id, title, description, image } = value
+  if (
+    typeof id !== "string" ||
+    typeof title !== "string" ||
+    typeof description !== "string" ||
+    typeof image !== "string"
+  ) {
+    return null
+  }
+
+  const tags = Array.isArray(value.tags)
+    ? value.tags.filter((tag): tag is string => typeof tag === "string")
+    : []
+  const ports = Array.isArray(value.ports)
+    ? value.ports
+        .map(normalizeCatalogPort)
+        .filter((port): port is CatalogPort => port !== null)
+    : []
+  const volumes = Array.isArray(value.volumes)
+    ? value.volumes
+        .map(normalizeCatalogVolume)
+        .filter((volume): volume is CatalogVolume => volume !== null)
+    : []
+  const environment = isRecord(value.environment)
+    ? Object.fromEntries(
+        Object.entries(value.environment).filter(
+          (entry): entry is [string, string] => typeof entry[1] === "string",
+        ),
+      )
+    : {}
+  const command = Array.isArray(value.command)
+    ? value.command.filter(
+        (argument): argument is string => typeof argument === "string",
+      )
+    : []
+
+  return {
+    id,
+    title,
+    description,
+    tags,
+    image,
+    ports,
+    volumes,
+    environment,
+    command,
+  }
+}
+
+export async function listCatalogApps(): Promise<CatalogResponse> {
+  const payload = await requestJson<unknown>("catalog")
+  if (!isRecord(payload) || payload.schemaVersion !== 1) {
+    throw new Error("DockerGo API 返回了不支持的应用目录版本")
+  }
+
+  if (!Array.isArray(payload.apps)) {
+    throw new Error("DockerGo API 返回了无效的应用目录")
+  }
+
+  const apps = payload.apps.map(normalizeCatalogApp)
+  if (apps.some((app) => app === null)) {
+    throw new Error("DockerGo API 返回的应用目录包含无效数据")
+  }
+
+  return { schemaVersion: 1, apps: apps as CatalogApp[] }
 }
 
 export function listDockerContainers(): Promise<DockerContainerListResponse> {
