@@ -4,6 +4,8 @@ import type {
   DockerContainerActionResponse,
   DockerContainerInspectResponse,
   DockerContainerListResponse,
+  DockerContainerLogsResponse,
+  DockerContainerRemoveResponse,
 } from "../types"
 
 declare global {
@@ -100,4 +102,29 @@ export async function inspectDockerContainer(
   }
 
   return response
+}
+
+export function getDockerContainerLogs(
+  id: string,
+): Promise<DockerContainerLogsResponse> {
+  return requestJson<DockerContainerLogsResponse>(
+    `logs?id=${encodeURIComponent(id)}`,
+  )
+}
+
+export function removeDockerContainer(
+  id: string,
+): Promise<DockerContainerRemoveResponse> {
+  const csrfToken =
+    window.DockerGoConfig?.csrfToken ||
+    import.meta.env.VITE_DOCKERGO_CSRF_TOKEN ||
+    ""
+
+  return requestJson<DockerContainerRemoveResponse>("remove", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+    },
+    body: new URLSearchParams({ id, token: csrfToken }),
+  })
 }

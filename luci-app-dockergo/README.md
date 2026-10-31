@@ -10,13 +10,17 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 | --- | --- | --- |
 | `GET` | `/containers` | 获取全部 Docker 容器 |
 | `GET` | `/inspect?id=<容器 ID>` | 获取指定容器详情 |
+| `GET` | `/logs?id=<容器 ID>` | 获取指定容器最近 300 行日志 |
 | `POST` | `/control` | 启动、暂停或恢复容器 |
+| `POST` | `/remove` | 强制停止并删除指定容器，保留镜像与数据卷 |
 
 `control` 接收 `application/x-www-form-urlencoded` 参数：
 
 - `id`：12 至 64 位十六进制容器 ID。
 - `action`：`start`、`pause` 或 `unpause`。
 - `token`：当前 LuCI 会话的 CSRF token，由挂载页自动注入。
+
+`remove` 接收同样格式的 `id` 和 `token` 参数。该操作只删除容器，保留镜像和数据卷。
 
 容器列表成功响应示例：
 

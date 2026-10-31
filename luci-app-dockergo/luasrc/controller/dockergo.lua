@@ -10,7 +10,9 @@ local EXIT_MARKER = "__DOCKERGO_EXIT__"
 function index()
 	entry({"admin", "services", "dockergo", "api", "containers"}, call("api_list_containers")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "inspect"}, call("api_inspect_container")).leaf = true
+	entry({"admin", "services", "dockergo", "api", "logs"}, call("api_container_logs")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "control"}, post("api_control_container")).leaf = true
+	entry({"admin", "services", "dockergo", "api", "remove"}, post("api_remove_container")).leaf = true
 end
 
 local function string_value(value)
@@ -179,5 +181,51 @@ function api_inspect_container()
 			networks = raw.NetworkSettings and raw.NetworkSettings.Networks or {},
 			mounts = raw.Mounts or {},
 		},
+	})
+end
+
+function api_container_logs()
+	local container_id = http.formvalue("id")
+	if not valid_container_id(container_id) then
+		write_error(400, "INVALID_CONTAINER_ID", "容器 ID 无效")
+		return
+	end
+
+	local status, output = run(string.format(
+		"/usr/bin/docker logs --tail 300 --timestamps %s", container_id))
+	if status ~= 0 then
+		write_error(404, "DOCKER_LOGS_FAILED", output ~= "" and output or "无法读取容器日志")
+		return
+	end
+
+	local lines = {}
+	for line in output:gmatch("[^\r\n]+") do
+		lines[#lines + 1] = line
+	end
+
+	write_json(200, {
+		success = true,
+		id = container_id,
+		lines = lines,
+	})
+end
+
+function api_remove_container()
+	local container_id = http.formvalue("id")
+	if not valid_container_id(container_id) then
+		write_error(400, "INVALID_CONTAINER_ID", "容器 ID 无效")
+		return
+	end
+
+	local status, output = run(string.format(
+		"/usr/bin/docker container rm --force %s", container_id))
+	if status ~= 0 then
+		write_error(500, "DOCKER_REMOVE_FAILED", output ~= "" and output or "无法卸载容器")
+		return
+	end
+
+	write_json(200, {
+		success = true,
+		id = container_id,
 	})
 end

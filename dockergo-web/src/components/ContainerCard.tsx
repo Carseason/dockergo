@@ -1,12 +1,16 @@
 import {
   ArrowSquareOut,
   Cube,
+  DotsThreeVertical,
+  FileText,
   HardDrives,
   Info,
   Pause,
   Play,
   SpinnerGap,
+  Trash,
 } from "@phosphor-icons/react"
+import { useEffect, useRef, useState } from "react"
 import type { DockerContainer, DockerContainerAction } from "../types"
 
 function getStateLabel(state: string) {
@@ -79,6 +83,8 @@ type ContainerCardProps = {
   pending: boolean
   onControl: (id: string, action: DockerContainerAction) => void
   onInspect: (container: DockerContainer) => void
+  onLogs: (container: DockerContainer) => void
+  onRemove: (container: DockerContainer) => void
 }
 
 export function ContainerCard({
@@ -86,10 +92,39 @@ export function ContainerCard({
   pending,
   onControl,
   onInspect,
+  onLogs,
+  onRemove,
 }: ContainerCardProps) {
+  const menuRef = useRef<HTMLDivElement>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const state = container.state.toLowerCase() || "unknown"
   const control = getContainerAction(state)
   const publishedPorts = getPublishedPorts(container.ports)
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    const closeMenu = (event: PointerEvent) => {
+      if (!menuRef.current || !event.composedPath().includes(menuRef.current)) {
+        setMenuOpen(false)
+      }
+    }
+    const closeMenuWithKeyboard = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false)
+    }
+
+    document.addEventListener("pointerdown", closeMenu)
+    document.addEventListener("keydown", closeMenuWithKeyboard)
+    return () => {
+      document.removeEventListener("pointerdown", closeMenu)
+      document.removeEventListener("keydown", closeMenuWithKeyboard)
+    }
+  }, [menuOpen])
+
+  const selectMenuAction = (action: () => void) => {
+    setMenuOpen(false)
+    action()
+  }
 
   return (
     <article className="container-card">
@@ -107,7 +142,51 @@ export function ContainerCard({
               {getStateLabel(container.state)}
             </span>
           </div>
-          <code title={container.id}>{container.id.slice(0, 12)}</code>
+          <div className="container-card__heading-actions">
+            <code title={container.id}>{container.id.slice(0, 12)}</code>
+            <div className="container-more" ref={menuRef}>
+              <button
+                type="button"
+                className="container-more__trigger"
+                aria-label={`打开 ${container.name || "容器"} 的更多选项`}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                disabled={pending}
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                <DotsThreeVertical size={20} weight="bold" />
+              </button>
+              {menuOpen && (
+                <div className="container-more__menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => selectMenuAction(() => onInspect(container))}
+                  >
+                    <Info size={16} />
+                    详情
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => selectMenuAction(() => onLogs(container))}
+                  >
+                    <FileText size={16} />
+                    日志
+                  </button>
+                  <button
+                    type="button"
+                    className="container-more__danger"
+                    role="menuitem"
+                    onClick={() => selectMenuAction(() => onRemove(container))}
+                  >
+                    <Trash size={16} />
+                    卸载
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         <p className="container-card__image" title={container.image}>
           {container.image}
@@ -145,14 +224,6 @@ export function ContainerCard({
               : "无公开端口"}
           </div>
           <div className="container-card__buttons">
-            <button
-              type="button"
-              className="container-details-button"
-              onClick={() => onInspect(container)}
-            >
-              <Info size={15} weight="bold" />
-              详情
-            </button>
             {control && (
               <button
                 type="button"

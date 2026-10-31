@@ -107,6 +107,19 @@ export type DockerContainerInspectResponse = {
   error?: DockerApiError
 }
 
+export type DockerContainerLogsResponse = {
+  success: boolean
+  id?: string
+  lines?: string[]
+  error?: DockerApiError
+}
+
+export type DockerContainerRemoveResponse = {
+  success: boolean
+  id?: string
+  error?: DockerApiError
+}
+
 export type InstallPhase = "configure" | "installing" | "complete"
 
 export type InstallConfiguration = {

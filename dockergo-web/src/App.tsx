@@ -2,8 +2,10 @@ import { useCallback, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import { Catalog } from "./components/Catalog"
 import { ContainerDetailsDialog } from "./components/ContainerDetailsDialog"
+import { ContainerLogsDialog } from "./components/ContainerLogsDialog"
 import { Hero } from "./components/Hero"
 import { InstallDialog } from "./components/InstallDialog"
+import { RemoveContainerDialog } from "./components/RemoveContainerDialog"
 import { Toast, type ToastVariant } from "./components/Toast"
 import { apps } from "./data/apps"
 import { useContainers } from "./hooks/useContainers"
@@ -21,6 +23,11 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
   const [activeTab, setActiveTab] = useState("已安装")
   const [detailsContainer, setDetailsContainer] =
     useState<DockerContainer | null>(null)
+  const [logsContainer, setLogsContainer] = useState<DockerContainer | null>(
+    null,
+  )
+  const [removeContainer, setRemoveContainer] =
+    useState<DockerContainer | null>(null)
   const [toast, setToast] = useState<ToastNotice | null>(null)
 
   const showToast = useCallback(
@@ -32,10 +39,14 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
 
   const dismissToast = useCallback(() => setToast(null), [])
   const handleContainerError = useCallback(
-    (message: string, operation: "list" | "control") => {
+    (message: string, operation: "list" | "control" | "remove") => {
       showToast(
         "error",
-        operation === "list" ? "无法获取容器列表" : "容器操作失败",
+        operation === "list"
+          ? "无法获取容器列表"
+          : operation === "remove"
+            ? "容器卸载失败"
+            : "容器操作失败",
         message,
       )
     },
@@ -45,7 +56,13 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
     (message: string) => showToast("error", "无法读取容器详情", message),
     [showToast],
   )
+  const handleLogsError = useCallback(
+    (message: string) => showToast("error", "无法读取容器日志", message),
+    [showToast],
+  )
   const closeDetails = useCallback(() => setDetailsContainer(null), [])
+  const closeLogs = useCallback(() => setLogsContainer(null), [])
+  const closeRemove = useCallback(() => setRemoveContainer(null), [])
 
   const installer = useInstaller()
   const docker = useContainers(handleContainerError)
@@ -91,6 +108,17 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
     void docker.refresh()
   }, [announceInstallSuccess, docker.refresh, installer.closeInstaller])
 
+  const confirmRemoveContainer = useCallback(async () => {
+    if (!removeContainer) return
+
+    const removed = await docker.remove(removeContainer.id)
+    if (!removed) return
+
+    const name = removeContainer.name || removeContainer.id.slice(0, 12)
+    setRemoveContainer(null)
+    showToast("success", "容器已卸载", `${name} 已从设备中移除`)
+  }, [docker.remove, removeContainer, showToast])
+
   const selectTab = (tab: string) => {
     setActiveTab(tab)
     if (tab === "已安装") void docker.refresh()
@@ -123,6 +151,23 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
           container={detailsContainer}
           onClose={closeDetails}
           onError={handleDetailsError}
+        />
+      )}
+
+      {logsContainer && (
+        <ContainerLogsDialog
+          container={logsContainer}
+          onClose={closeLogs}
+          onError={handleLogsError}
+        />
+      )}
+
+      {removeContainer && (
+        <RemoveContainerDialog
+          container={removeContainer}
+          pending={docker.pendingContainerId === removeContainer.id}
+          onClose={closeRemove}
+          onConfirm={() => void confirmRemoveContainer()}
         />
       )}
 
@@ -169,6 +214,8 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
                 void docker.control(id, action)
               }
               onInspectContainer={setDetailsContainer}
+              onShowContainerLogs={setLogsContainer}
+              onRemoveContainer={setRemoveContainer}
             />
           </div>
         </main>

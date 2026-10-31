@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { controlDockerContainer, listDockerContainers } from "../api/dockergo"
+import {
+  controlDockerContainer,
+  listDockerContainers,
+  removeDockerContainer,
+} from "../api/dockergo"
 import type { DockerContainer, DockerContainerAction } from "../types"
 
-type ContainerOperation = "list" | "control"
+type ContainerOperation = "list" | "control" | "remove"
 
 export function useContainers(
   onError: (message: string, operation: ContainerOperation) => void,
@@ -65,6 +69,31 @@ export function useContainers(
     [onError, refresh],
   )
 
+  const remove = useCallback(
+    async (containerId: string) => {
+      setPendingContainerId(containerId)
+
+      try {
+        const response = await removeDockerContainer(containerId)
+        if (!response.success || response.error) {
+          throw new Error(response.error?.message || "容器卸载失败")
+        }
+
+        await refresh(true)
+        return true
+      } catch (removeError) {
+        onError(
+          removeError instanceof Error ? removeError.message : "容器卸载失败",
+          "remove",
+        )
+        return false
+      } finally {
+        setPendingContainerId("")
+      }
+    },
+    [onError, refresh],
+  )
+
   useEffect(() => {
     void refresh()
     return () => {
@@ -78,5 +107,6 @@ export function useContainers(
     pendingContainerId,
     refresh,
     control,
+    remove,
   }
 }

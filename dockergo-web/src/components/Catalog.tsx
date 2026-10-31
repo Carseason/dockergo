@@ -24,6 +24,8 @@ type CatalogProps = {
   onRefreshContainers: () => void
   onControlContainer: (id: string, action: DockerContainerAction) => void
   onInspectContainer: (container: DockerContainer) => void
+  onShowContainerLogs: (container: DockerContainer) => void
+  onRemoveContainer: (container: DockerContainer) => void
 }
 
 export function Catalog({
@@ -38,6 +40,8 @@ export function Catalog({
   onRefreshContainers,
   onControlContainer,
   onInspectContainer,
+  onShowContainerLogs,
+  onRemoveContainer,
 }: CatalogProps) {
   const isInstalled = activeTab === "已安装"
 
@@ -94,6 +98,8 @@ export function Catalog({
                 pending={pendingContainerId === container.id}
                 onControl={onControlContainer}
                 onInspect={onInspectContainer}
+                onLogs={onShowContainerLogs}
+                onRemove={onRemoveContainer}
               />
             ))}
           </div>
