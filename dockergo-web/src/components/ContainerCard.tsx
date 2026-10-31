@@ -113,10 +113,16 @@ export function ContainerCard({
         </p>
         <p className="container-card__status">
           {container.status || container.runningFor}
+          {container.networks && <span> · {container.networks}</span>}
         </p>
-        <div className="container-card__meta">
-          <span className="container-card__ports">
-            <HardDrives size={14} />
+        {actionError && (
+          <p className="container-card__error" role="alert">
+            {actionError}
+          </p>
+        )}
+        <div className="container-card__footer">
+          <div className="container-card__ports">
+            <HardDrives size={15} aria-hidden="true" />
             {publishedPorts.length > 0
               ? publishedPorts.map((port) =>
                   port.protocol === "tcp" ? (
@@ -127,28 +133,21 @@ export function ContainerCard({
                       rel="noreferrer"
                       title={`打开宿主机端口 ${port.hostPort}`}
                     >
-                      {port.hostPort} → {port.containerPort}/{port.protocol}
+                      {port.hostPort}
                       <ArrowSquareOut size={12} />
                     </a>
                   ) : (
                     <span
                       className="container-card__port-label"
                       key={`${port.hostPort}/${port.protocol}`}
+                      title={`${port.containerPort}/${port.protocol}`}
                     >
-                      {port.hostPort} → {port.containerPort}/{port.protocol}
+                      {port.hostPort}
                     </span>
                   ),
                 )
-              : container.ports || "未暴露端口"}
-          </span>
-          {container.networks && <span>{container.networks}</span>}
-        </div>
-        <div className="container-card__actions">
-          {actionError && (
-            <span className="container-card__error" role="alert">
-              {actionError}
-            </span>
-          )}
+              : "无公开端口"}
+          </div>
           {control && (
             <button
               type="button"

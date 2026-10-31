@@ -10,7 +10,7 @@ import { useInstaller } from "./hooks/useInstaller"
 import type { StoreView } from "./types"
 
 export default function App() {
-  const [view, setView] = useState<StoreView>("market")
+  const [view, setView] = useState<StoreView>("installed")
   const [activeCategory, setActiveCategory] = useState("全部")
   const [query, setQuery] = useState("")
   const searchRef = useRef<HTMLInputElement>(null)
@@ -120,19 +120,19 @@ export default function App() {
           <div className="store-tabs" aria-label="应用商店视图">
             <button
               type="button"
-              className={view === "market" ? "active" : ""}
-              aria-pressed={view === "market"}
-              onClick={() => selectView("market")}
-            >
-              应用市场
-            </button>
-            <button
-              type="button"
               className={view === "installed" ? "active" : ""}
               aria-pressed={view === "installed"}
               onClick={() => selectView("installed")}
             >
               已安装 <span>{docker.containers.length}</span>
+            </button>
+            <button
+              type="button"
+              className={view === "market" ? "active" : ""}
+              aria-pressed={view === "market"}
+              onClick={() => selectView("market")}
+            >
+              应用市场
             </button>
           </div>
 
