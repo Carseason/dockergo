@@ -32,10 +32,15 @@ type UbusResponse<T,> = {
 }
 
 function getLuCIWindow(): LuCIWindow | undefined {
+  const currentWindow = window as LuCIWindow
+  if (currentWindow.DockerGoLuci) {
+    return currentWindow
+  }
+
   try {
     return window.parent as LuCIWindow
   } catch {
-    return undefined
+    return currentWindow
   }
 }
 
