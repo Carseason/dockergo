@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-开发与预览服务默认使用 `http://localhost:30076`。
+开发与预览服务监听 `0.0.0.0:37001`，本机可通过 `http://localhost:37001` 访问。
 
 ## 检查与构建
 
