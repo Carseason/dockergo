@@ -3,6 +3,7 @@ import type { CatalogApp } from "../types"
 export const apps: CatalogApp[] = [
   {
     name: "Nginx Proxy Manager",
+    image: "jc21/nginx-proxy-manager",
     description: "简单、安全地管理反向代理与 SSL 证书",
     category: "网络",
     color: "indigo",
@@ -14,6 +15,7 @@ export const apps: CatalogApp[] = [
   },
   {
     name: "PostgreSQL",
+    image: "postgres",
     description: "强大、可靠的开源关系型数据库",
     category: "数据库",
     color: "blue",
@@ -25,6 +27,7 @@ export const apps: CatalogApp[] = [
   },
   {
     name: "Redis",
+    image: "redis",
     description: "高性能内存数据存储与缓存服务",
     category: "数据库",
     color: "red",
@@ -36,6 +39,7 @@ export const apps: CatalogApp[] = [
   },
   {
     name: "Uptime Kuma",
+    image: "louislam/uptime-kuma",
     description: "轻量、易用的自托管服务监控工具",
     category: "监控",
     color: "green",
@@ -47,6 +51,7 @@ export const apps: CatalogApp[] = [
   },
   {
     name: "Gitea",
+    image: "gitea/gitea",
     description: "轻量、快速的私有 Git 托管服务",
     category: "开发工具",
     color: "teal",
@@ -58,6 +63,7 @@ export const apps: CatalogApp[] = [
   },
   {
     name: "MinIO",
+    image: "minio/minio",
     description: "兼容 S3 的高性能对象存储服务",
     category: "存储",
     color: "rose",

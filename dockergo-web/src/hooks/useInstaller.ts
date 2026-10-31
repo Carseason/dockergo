@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import type { CatalogApp, InstallConfiguration, InstallPhase } from "../types"
 
-const initialInstalledApps = ["Redis", "Uptime Kuma"]
-
 function getDefaultConfiguration(app: CatalogApp): InstallConfiguration {
   return {
     hostPort: app.defaultPort,
@@ -15,7 +13,6 @@ function getDefaultConfiguration(app: CatalogApp): InstallConfiguration {
 
 export function useInstaller() {
   const [selectedApp, setSelectedApp] = useState<CatalogApp | null>(null)
-  const [installedApps, setInstalledApps] = useState(initialInstalledApps)
   const [phase, setPhase] = useState<InstallPhase>("configure")
   const [configuration, setConfiguration] =
     useState<InstallConfiguration | null>(null)
@@ -68,9 +65,6 @@ export function useInstaller() {
         () => {
           setLogs((current) => [...current, message])
           if (index === messages.length - 1) {
-            setInstalledApps((current) => [
-              ...new Set([...current, selectedApp.name]),
-            ])
             setLastInstalledApp(selectedApp.name)
             setPhase("complete")
           }
@@ -84,7 +78,6 @@ export function useInstaller() {
 
   return {
     selectedApp,
-    installedApps,
     phase,
     configuration,
     logs,

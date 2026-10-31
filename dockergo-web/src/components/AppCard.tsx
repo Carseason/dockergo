@@ -4,17 +4,11 @@ import type { CatalogApp } from "../types"
 type AppCardProps = {
   app: CatalogApp
   installed: boolean
-  managementMode: boolean
   onInstall: (app: CatalogApp) => void
 }
 
-export function AppCard({
-  app,
-  installed,
-  managementMode,
-  onInstall,
-}: AppCardProps) {
-  const actionLabel = managementMode ? "管理" : installed ? "已安装" : "安装"
+export function AppCard({ app, installed, onInstall }: AppCardProps) {
+  const actionLabel = installed ? "已安装" : "安装"
 
   return (
     <article className="app-card">
@@ -42,7 +36,6 @@ export function AppCard({
             }`}
             onClick={() => onInstall(app)}
             disabled={installed}
-            title={managementMode ? "应用管理功能将在后续版本开放" : undefined}
           >
             {actionLabel}
           </button>

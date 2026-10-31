@@ -1,24 +1,38 @@
-import { MagnifyingGlass } from "@phosphor-icons/react"
+import {
+  ArrowClockwise,
+  MagnifyingGlass,
+  SpinnerGap,
+  WarningCircle,
+} from "@phosphor-icons/react"
 import { categories } from "../data/apps"
-import type { CatalogApp, StoreView } from "../types"
+import type { CatalogApp, DockerContainer, StoreView } from "../types"
 import { AppCard } from "./AppCard"
+import { ContainerCard } from "./ContainerCard"
 
 type CatalogProps = {
   apps: CatalogApp[]
+  containers: DockerContainer[]
   view: StoreView
-  installedApps: string[]
+  installedAppImages: Set<string>
+  containersLoading: boolean
+  containersError: string
   activeCategory: string
   onCategoryChange: (category: string) => void
   onInstall: (app: CatalogApp) => void
+  onRefreshContainers: () => void
 }
 
 export function Catalog({
   apps,
+  containers,
   view,
-  installedApps,
+  installedAppImages,
+  containersLoading,
+  containersError,
   activeCategory,
   onCategoryChange,
   onInstall,
+  onRefreshContainers,
 }: CatalogProps) {
   const isMarket = view === "market"
 
@@ -33,10 +47,10 @@ export function Catalog({
           <p>
             {isMarket
               ? "为你的工作流选择合适的工具"
-              : `${installedApps.length} 个应用正在此设备上运行`}
+              : `${containers.length} 个 Docker 容器已安装在此设备上`}
           </p>
         </div>
-        {isMarket && activeCategory !== "全部" && (
+        {isMarket && activeCategory !== "全部" ? (
           <button
             type="button"
             className="text-button"
@@ -44,44 +58,87 @@ export function Catalog({
           >
             清除筛选
           </button>
-        )}
-      </div>
-
-      <div className="category-tabs" aria-label="应用分类">
-        {categories.map((category) => (
+        ) : !isMarket ? (
           <button
             type="button"
-            key={category}
-            className={activeCategory === category ? "active" : ""}
-            aria-pressed={activeCategory === category}
-            onClick={() => onCategoryChange(category)}
+            className="text-button refresh-button"
+            onClick={onRefreshContainers}
+            disabled={containersLoading}
           >
-            {category}
+            <ArrowClockwise
+              size={14}
+              className={containersLoading ? "is-spinning" : ""}
+            />
+            刷新
           </button>
-        ))}
+        ) : null}
       </div>
 
-      {apps.length > 0 ? (
-        <div className="app-grid">
-          {apps.map((app) => (
-            <AppCard
-              key={app.name}
-              app={app}
-              installed={installedApps.includes(app.name)}
-              managementMode={!isMarket}
-              onInstall={onInstall}
-            />
+      {isMarket && (
+        <div className="category-tabs" aria-label="应用分类">
+          {categories.map((category) => (
+            <button
+              type="button"
+              key={category}
+              className={activeCategory === category ? "active" : ""}
+              aria-pressed={activeCategory === category}
+              onClick={() => onCategoryChange(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {isMarket ? (
+        apps.length > 0 ? (
+          <div className="app-grid">
+            {apps.map((app) => (
+              <AppCard
+                key={app.name}
+                app={app}
+                installed={installedAppImages.has(app.image)}
+                onInstall={onInstall}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state" role="status">
+            <MagnifyingGlass size={28} />
+            <strong>没有找到相关应用</strong>
+            <span>尝试使用其他关键词或分类</span>
+          </div>
+        )
+      ) : containersLoading ? (
+        <div className="empty-state" role="status">
+          <SpinnerGap className="is-spinning" size={28} />
+          <strong>正在读取 Docker 容器</strong>
+          <span>正在通过 iStoreOS 获取最新状态</span>
+        </div>
+      ) : containersError ? (
+        <div className="empty-state empty-state--error" role="alert">
+          <WarningCircle size={28} />
+          <strong>无法获取容器列表</strong>
+          <span>{containersError}</span>
+          <button
+            type="button"
+            className="retry-button"
+            onClick={onRefreshContainers}
+          >
+            重试
+          </button>
+        </div>
+      ) : containers.length > 0 ? (
+        <div className="container-grid">
+          {containers.map((container) => (
+            <ContainerCard key={container.id} container={container} />
           ))}
         </div>
       ) : (
         <div className="empty-state" role="status">
           <MagnifyingGlass size={28} />
-          <strong>{isMarket ? "没有找到相关应用" : "暂无已安装应用"}</strong>
-          <span>
-            {isMarket
-              ? "尝试使用其他关键词或分类"
-              : "前往应用市场选择并安装应用"}
-          </span>
+          <strong>暂无 Docker 容器</strong>
+          <span>设备上还没有创建任何容器</span>
         </div>
       )}
     </section>

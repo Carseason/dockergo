@@ -5,6 +5,7 @@ import { Hero } from "./components/Hero"
 import { InstallDialog } from "./components/InstallDialog"
 import { Toast } from "./components/Toast"
 import { apps } from "./data/apps"
+import { useContainers } from "./hooks/useContainers"
 import { useInstaller } from "./hooks/useInstaller"
 import type { StoreView } from "./types"
 
@@ -14,19 +15,50 @@ export default function App() {
   const [query, setQuery] = useState("")
   const searchRef = useRef<HTMLInputElement>(null)
   const installer = useInstaller()
+  const docker = useContainers()
+
+  const installedAppImages = useMemo(() => {
+    const normalizeImage = (image: string) => {
+      const withoutDigest = image.split("@", 1)[0]
+      const lastSlash = withoutDigest.lastIndexOf("/")
+      const lastColon = withoutDigest.lastIndexOf(":")
+      const withoutTag =
+        lastColon > lastSlash
+          ? withoutDigest.slice(0, lastColon)
+          : withoutDigest
+
+      return withoutTag
+        .replace(/^(?:docker\.io|index\.docker\.io)\//, "")
+        .replace(/^library\//, "")
+    }
+
+    return new Set(
+      docker.containers.map((container) => normalizeImage(container.image)),
+    )
+  }, [docker.containers])
 
   const filteredApps = useMemo(
     () =>
       apps.filter(
         (app) =>
-          (view === "market" || installer.installedApps.includes(app.name)) &&
           (activeCategory === "全部" || app.category === activeCategory) &&
           `${app.name}${app.description}`
             .toLocaleLowerCase()
             .includes(query.trim().toLocaleLowerCase()),
       ),
-    [activeCategory, installer.installedApps, query, view],
+    [activeCategory, query],
   )
+
+  const filteredContainers = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase()
+    if (!normalizedQuery) return docker.containers
+
+    return docker.containers.filter((container) =>
+      `${container.name}${container.image}${container.status}${container.ports}`
+        .toLocaleLowerCase()
+        .includes(normalizedQuery),
+    )
+  }, [docker.containers, query])
 
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
@@ -44,6 +76,12 @@ export default function App() {
     installer.closeInstaller()
     setView("installed")
     setActiveCategory("全部")
+    void docker.refresh()
+  }
+
+  const selectView = (nextView: StoreView) => {
+    setView(nextView)
+    if (nextView === "installed") void docker.refresh()
   }
 
   const browseAllApps = () => {
@@ -84,7 +122,7 @@ export default function App() {
               type="button"
               className={view === "market" ? "active" : ""}
               aria-pressed={view === "market"}
-              onClick={() => setView("market")}
+              onClick={() => selectView("market")}
             >
               应用市场
             </button>
@@ -92,9 +130,9 @@ export default function App() {
               type="button"
               className={view === "installed" ? "active" : ""}
               aria-pressed={view === "installed"}
-              onClick={() => setView("installed")}
+              onClick={() => selectView("installed")}
             >
-              已安装 <span>{installer.installedApps.length}</span>
+              已安装 <span>{docker.containers.length}</span>
             </button>
           </div>
 
@@ -102,11 +140,15 @@ export default function App() {
 
           <Catalog
             apps={filteredApps}
+            containers={filteredContainers}
             view={view}
-            installedApps={installer.installedApps}
+            installedAppImages={installedAppImages}
+            containersLoading={docker.loading}
+            containersError={docker.error}
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
             onInstall={installer.openInstaller}
+            onRefreshContainers={() => void docker.refresh()}
           />
         </div>
       </main>
