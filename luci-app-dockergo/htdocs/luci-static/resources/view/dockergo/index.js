@@ -71,7 +71,7 @@ return view.extend({
 		style.textContent = styleText;
 		mount.id = 'dockergo-app';
 		overlayHost.id = 'dockergo-overlay-root';
-		overlayHost.style.cssText = 'position:fixed;inset:0;z-index:10000;pointer-events:none';
+		overlayHost.style.cssText = 'position:fixed;inset:0;z-index:10000;pointer-events:none;background:transparent';
 		overlayStyle.textContent = styleText;
 		overlayMount.id = 'dockergo-overlay';
 		overlayMount.style.cssText = 'position:fixed;inset:0;pointer-events:none';
