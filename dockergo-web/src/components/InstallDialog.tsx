@@ -25,11 +25,11 @@ export function InstallDialog({
 }: InstallDialogProps) {
   const titleRef = useRef<HTMLHeadingElement>(null)
   const progress = phase === "complete" ? 100 : Math.min(92, logs.length * 12)
+  const port = app.ports.find((candidate) => candidate.web) || app.ports[0]
   const hasVolume = app.volumes.length > 0
   const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
   const isValid =
-    configuration.hostPort.length > 0 &&
-    configuration.containerPort.length > 0 &&
+    (!port || configuration.hostPort.length > 0) &&
     (!hasVolume || configuration.dataDirectory.length > 0)
 
   useEffect(() => {
@@ -96,39 +96,34 @@ export function InstallDialog({
               onInstall()
             }}
           >
-            <fieldset className="form-group">
-              <legend>端口映射</legend>
-              <div className="port-mapping">
-                <label>
-                  <span>主机端口</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="65535"
-                    value={configuration.hostPort}
-                    onChange={(event) =>
-                      onConfigurationChange({ hostPort: event.target.value })
-                    }
-                  />
-                </label>
-                <strong aria-hidden="true">-&gt;</strong>
-                <label>
-                  <span>容器端口</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="65535"
-                    value={configuration.containerPort}
-                    onChange={(event) =>
-                      onConfigurationChange({
-                        containerPort: event.target.value,
-                      })
-                    }
-                  />
-                </label>
-                <em>TCP</em>
-              </div>
-            </fieldset>
+            {port && (
+              <fieldset className="form-group">
+                <legend>端口映射</legend>
+                <div className="port-mapping">
+                  <label className="port-mapping__field">
+                    <span>主机端口</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="65535"
+                      value={configuration.hostPort}
+                      onChange={(event) =>
+                        onConfigurationChange({ hostPort: event.target.value })
+                      }
+                    />
+                  </label>
+                  <strong aria-hidden="true">-&gt;</strong>
+                  <div className="port-mapping__field port-mapping__fixed">
+                    <span>容器端口</span>
+                    <output aria-label={`容器端口 ${port.container}，系统固定`}>
+                      <b>{port.container}</b>
+                      <small>系统固定</small>
+                    </output>
+                  </div>
+                  <em>TCP</em>
+                </div>
+              </fieldset>
+            )}
 
             {hasVolume && (
               <div className="form-group">
@@ -165,19 +160,6 @@ export function InstallDialog({
                 <span>
                   <strong>自动启动</strong>
                   <small>Docker 启动时自动运行应用</small>
-                </span>
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={configuration.autoUpdate}
-                  onChange={(event) =>
-                    onConfigurationChange({ autoUpdate: event.target.checked })
-                  }
-                />
-                <span>
-                  <strong>自动更新</strong>
-                  <small>有稳定版本时自动升级</small>
                 </span>
               </label>
             </div>

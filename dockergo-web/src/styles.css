@@ -1509,7 +1509,7 @@ main {
   gap: 9px;
 }
 
-.port-mapping label > span {
+.port-mapping__field > span {
   display: block;
   margin-bottom: 5px;
   color: #657186;
@@ -1519,7 +1519,7 @@ main {
 .port-mapping input,
 .directory-input input {
   width: 100%;
-  height: 38px;
+  height: 40px;
   border: 1px solid #d7dde7;
   border-radius: 7px;
   outline: 0;
@@ -1531,6 +1531,35 @@ main {
 
 .port-mapping input {
   padding: 0 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.port-mapping__fixed output {
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #dfe3e9;
+  border-radius: 7px;
+  background: #eef1f5;
+  color: #4e5b70;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.port-mapping__fixed output b {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.port-mapping__fixed output small {
+  margin: 0;
+  color: #7a8596;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .port-mapping input:focus,
@@ -1585,7 +1614,7 @@ main {
 
 .install-options {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
@@ -2012,10 +2041,6 @@ main {
 
   .port-mapping > em {
     display: none;
-  }
-
-  .install-options {
-    grid-template-columns: 1fr;
   }
 
   .log-lines {

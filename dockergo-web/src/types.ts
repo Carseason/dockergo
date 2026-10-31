@@ -137,8 +137,6 @@ export type InstallPhase = "configure" | "installing" | "complete"
 
 export type InstallConfiguration = {
   hostPort: string
-  containerPort: string
   dataDirectory: string
   autoStart: boolean
-  autoUpdate: boolean
 }

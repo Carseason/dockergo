@@ -7,10 +7,8 @@ function getDefaultConfiguration(app: CatalogApp): InstallConfiguration {
 
   return {
     hostPort: port ? String(port.host) : "",
-    containerPort: port ? String(port.container) : "",
     dataDirectory: volume ? `/docker/apps/${app.id}/${volume.host}` : "",
     autoStart: true,
-    autoUpdate: true,
   }
 }
 
@@ -51,13 +49,20 @@ export function useInstaller() {
   useEffect(() => {
     if (phase !== "installing" || !selectedApp || !configuration) return
 
+    const port =
+      selectedApp.ports.find((candidate) => candidate.web) ||
+      selectedApp.ports[0]
     const messages = [
       `[镜像] 拉取 ${selectedApp.image}`,
       "[镜像] 校验镜像完整性... 完成",
       ...(configuration.dataDirectory
         ? [`[存储] 挂载 ${configuration.dataDirectory}`]
         : []),
-      `[网络] 映射端口 0.0.0.0:${configuration.hostPort} -> ${configuration.containerPort}/tcp`,
+      ...(port
+        ? [
+            `[网络] 映射端口 0.0.0.0:${configuration.hostPort} -> ${port.container}/tcp`,
+          ]
+        : []),
       "[容器] 创建专用网络 dockergo_default",
       `[容器] 启动 ${selectedApp.id}`,
       "[检查] 等待应用健康检查...",
