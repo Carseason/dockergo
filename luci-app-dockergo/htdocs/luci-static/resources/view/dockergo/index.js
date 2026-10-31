@@ -13,10 +13,17 @@ const callControlContainer = rpc.declare({
 	params: [ 'id', 'action' ]
 });
 
+const callInspectContainer = rpc.declare({
+	object: 'luci.dockergo',
+	method: 'inspect',
+	params: [ 'id' ]
+});
+
 return view.extend({
 	render: function() {
 		window.DockerGoLuci = Object.freeze({
 			listContainers: callListContainers,
+			inspectContainer: callInspectContainer,
 			controlContainer: callControlContainer
 		});
 

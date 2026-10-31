@@ -3,7 +3,7 @@
 		"description": "Grant access to DockerGo container data and lifecycle controls",
 		"read": {
 			"ubus": {
-				"luci.dockergo": [ "list" ]
+				"luci.dockergo": [ "list", "inspect" ]
 			}
 		},
 		"write": {

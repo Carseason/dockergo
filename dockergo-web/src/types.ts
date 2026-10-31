@@ -46,6 +46,67 @@ export type DockerContainerActionResponse = {
   error?: DockerApiError
 }
 
+export type DockerPortBinding = {
+  HostIp: string
+  HostPort: string
+}
+
+export type DockerNetworkDetails = {
+  Gateway?: string
+  IPAddress?: string
+  MacAddress?: string
+}
+
+export type DockerMountDetails = {
+  Type: string
+  Name?: string
+  Source: string
+  Destination: string
+  Driver?: string
+  Mode: string
+  RW: boolean
+  Propagation?: string
+}
+
+export type DockerContainerDetails = {
+  id: string
+  name: string
+  image: string
+  imageId: string
+  createdAt: string
+  platform: string
+  driver: string
+  restartPolicy: string
+  networkMode: string
+  command: {
+    path: string
+    args: string[]
+  }
+  state: {
+    status: string
+    running: boolean
+    paused: boolean
+    restarting: boolean
+    oomKilled: boolean
+    dead: boolean
+    pid: number
+    exitCode: number
+    error: string
+    startedAt: string
+    finishedAt: string
+    health: string
+  }
+  ports: Record<string, DockerPortBinding[] | null>
+  networks: Record<string, DockerNetworkDetails>
+  mounts: DockerMountDetails[]
+}
+
+export type DockerContainerInspectResponse = {
+  success: boolean
+  container?: DockerContainerDetails
+  error?: DockerApiError
+}
+
 export type StoreView = "market" | "installed"
 export type InstallPhase = "configure" | "installing" | "complete"
 

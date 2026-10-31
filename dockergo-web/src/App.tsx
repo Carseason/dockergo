@@ -1,18 +1,21 @@
 import { MagnifyingGlass } from "@phosphor-icons/react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Catalog } from "./components/Catalog"
+import { ContainerDetailsDialog } from "./components/ContainerDetailsDialog"
 import { Hero } from "./components/Hero"
 import { InstallDialog } from "./components/InstallDialog"
 import { Toast } from "./components/Toast"
 import { apps } from "./data/apps"
 import { useContainers } from "./hooks/useContainers"
 import { useInstaller } from "./hooks/useInstaller"
-import type { StoreView } from "./types"
+import type { DockerContainer, StoreView } from "./types"
 
 export default function App() {
   const [view, setView] = useState<StoreView>("installed")
   const [activeCategory, setActiveCategory] = useState("全部")
   const [query, setQuery] = useState("")
+  const [detailsContainer, setDetailsContainer] =
+    useState<DockerContainer | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const installer = useInstaller()
   const docker = useContainers()
@@ -152,6 +155,7 @@ export default function App() {
             onInstall={installer.openInstaller}
             onRefreshContainers={() => void docker.refresh()}
             onControlContainer={(id, action) => void docker.control(id, action)}
+            onInspectContainer={setDetailsContainer}
           />
         </div>
       </main>
@@ -166,6 +170,13 @@ export default function App() {
           onInstall={installer.startInstallation}
           onClose={installer.closeInstaller}
           onShowInstalled={showInstalledApps}
+        />
+      )}
+
+      {detailsContainer && (
+        <ContainerDetailsDialog
+          container={detailsContainer}
+          onClose={() => setDetailsContainer(null)}
         />
       )}
 

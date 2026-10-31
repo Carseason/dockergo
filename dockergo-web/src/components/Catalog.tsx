@@ -31,6 +31,7 @@ type CatalogProps = {
   onInstall: (app: CatalogApp) => void
   onRefreshContainers: () => void
   onControlContainer: (id: string, action: DockerContainerAction) => void
+  onInspectContainer: (container: DockerContainer) => void
 }
 
 export function Catalog({
@@ -47,6 +48,7 @@ export function Catalog({
   onInstall,
   onRefreshContainers,
   onControlContainer,
+  onInspectContainer,
 }: CatalogProps) {
   const isMarket = view === "market"
 
@@ -157,6 +159,7 @@ export function Catalog({
                   : ""
               }
               onControl={onControlContainer}
+              onInspect={onInspectContainer}
             />
           ))}
         </div>

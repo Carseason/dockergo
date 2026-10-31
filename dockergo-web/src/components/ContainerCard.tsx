@@ -2,6 +2,7 @@ import {
   ArrowSquareOut,
   Cube,
   HardDrives,
+  Info,
   Pause,
   Play,
   SpinnerGap,
@@ -78,6 +79,7 @@ type ContainerCardProps = {
   pending: boolean
   actionError: string
   onControl: (id: string, action: DockerContainerAction) => void
+  onInspect: (container: DockerContainer) => void
 }
 
 export function ContainerCard({
@@ -85,6 +87,7 @@ export function ContainerCard({
   pending,
   actionError,
   onControl,
+  onInspect,
 }: ContainerCardProps) {
   const state = container.state.toLowerCase() || "unknown"
   const control = getContainerAction(state)
@@ -148,23 +151,33 @@ export function ContainerCard({
                 )
               : "无公开端口"}
           </div>
-          {control && (
+          <div className="container-card__buttons">
             <button
               type="button"
-              className={`container-control container-control--${control.action}`}
-              disabled={pending}
-              onClick={() => onControl(container.id, control.action)}
+              className="container-details-button"
+              onClick={() => onInspect(container)}
             >
-              {pending ? (
-                <SpinnerGap className="is-spinning" size={15} />
-              ) : control.action === "pause" ? (
-                <Pause size={15} weight="fill" />
-              ) : (
-                <Play size={15} weight="fill" />
-              )}
-              {pending ? "处理中" : control.label}
+              <Info size={15} weight="bold" />
+              详情
             </button>
-          )}
+            {control && (
+              <button
+                type="button"
+                className={`container-control container-control--${control.action}`}
+                disabled={pending}
+                onClick={() => onControl(container.id, control.action)}
+              >
+                {pending ? (
+                  <SpinnerGap className="is-spinning" size={15} />
+                ) : control.action === "pause" ? (
+                  <Pause size={15} weight="fill" />
+                ) : (
+                  <Play size={15} weight="fill" />
+                )}
+                {pending ? "处理中" : control.label}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </article>

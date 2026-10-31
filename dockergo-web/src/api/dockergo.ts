@@ -1,6 +1,7 @@
 import type {
   DockerContainerAction,
   DockerContainerActionResponse,
+  DockerContainerInspectResponse,
   DockerContainerListResponse,
 } from "../types"
 
@@ -10,6 +11,7 @@ type LuCIBridge = {
     id: string,
     action: DockerContainerAction,
   ) => Promise<DockerContainerActionResponse>
+  inspectContainer: (id: string) => Promise<DockerContainerInspectResponse>
 }
 
 type LuCIWindow = Window & {
@@ -111,5 +113,20 @@ export async function controlDockerContainer(
     luciWindow || window as LuCIWindow,
     "control",
     { id, action },
+  )
+}
+
+export async function inspectDockerContainer(
+  id: string,
+): Promise<DockerContainerInspectResponse> {
+  const luciWindow = getLuCIWindow()
+  if (luciWindow?.DockerGoLuci?.inspectContainer) {
+    return luciWindow.DockerGoLuci.inspectContainer(id)
+  }
+
+  return callUbusDirectly<DockerContainerInspectResponse>(
+    luciWindow || window as LuCIWindow,
+    "inspect",
+    { id },
   )
 }
