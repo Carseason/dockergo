@@ -17,7 +17,7 @@ return view.extend({
 			'id': 'dockergo-app',
 			'src': L.resource('dockergo/app/index.html'),
 			'title': _('DockerGo'),
-			'style': 'display:block;width:100%;height:calc(100vh - 110px);min-height:680px;border:0;border-radius:8px;background:#f5f7fb'
+			'style': 'position:fixed;inset:0;z-index:1000;display:block;width:100vw;height:100vh;height:100dvh;border:0;background:#f5f7fb'
 		});
 	},
 

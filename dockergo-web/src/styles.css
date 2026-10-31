@@ -25,6 +25,13 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -88,7 +95,9 @@ a:focus-visible,
 }
 
 .app-shell {
+  width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 main {
@@ -167,8 +176,7 @@ main {
 }
 
 .content {
-  max-width: 1320px;
-  margin: auto;
+  width: 100%;
   padding: 28px 42px 56px;
 }
 
