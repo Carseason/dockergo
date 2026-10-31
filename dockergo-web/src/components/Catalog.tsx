@@ -4,7 +4,7 @@ import {
   SpinnerGap,
   WarningCircle,
 } from "@phosphor-icons/react"
-import { categories } from "../data/apps"
+import { catalogTabs } from "../data/apps"
 import type {
   CatalogApp,
   DockerContainer,
@@ -24,8 +24,8 @@ type CatalogProps = {
     id: string
     message: string
   }
-  activeCategory: string
-  onCategoryChange: (category: string) => void
+  activeTab: string
+  onTabChange: (tab: string) => void
   onInstall: (app: CatalogApp) => void
   onRefreshContainers: () => void
   onControlContainer: (id: string, action: DockerContainerAction) => void
@@ -40,14 +40,14 @@ export function Catalog({
   containersError,
   pendingContainerId,
   containerActionError,
-  activeCategory,
-  onCategoryChange,
+  activeTab,
+  onTabChange,
   onInstall,
   onRefreshContainers,
   onControlContainer,
   onInspectContainer,
 }: CatalogProps) {
-  const isInstalled = activeCategory === "已安装"
+  const isInstalled = activeTab === "已安装"
 
   return (
     <section className="catalog" id="catalog">
@@ -69,27 +69,19 @@ export function Catalog({
             />
             刷新
           </button>
-        ) : activeCategory !== "全部" ? (
-          <button
-            type="button"
-            className="text-button"
-            onClick={() => onCategoryChange("全部")}
-          >
-            清除筛选
-          </button>
         ) : null}
       </div>
 
-      <div className="category-tabs" aria-label="应用分类">
-        {categories.map((category) => (
+      <div className="category-tabs" aria-label="应用视图">
+        {catalogTabs.map((tab) => (
           <button
             type="button"
-            key={category}
-            className={activeCategory === category ? "active" : ""}
-            aria-pressed={activeCategory === category}
-            onClick={() => onCategoryChange(category)}
+            key={tab}
+            className={activeTab === tab ? "active" : ""}
+            aria-pressed={activeTab === tab}
+            onClick={() => onTabChange(tab)}
           >
-            {category}
+            {tab}
           </button>
         ))}
       </div>

@@ -75,12 +75,4 @@ export const apps: CatalogApp[] = [
   },
 ]
 
-export const categories = [
-  "已安装",
-  "全部",
-  "开发工具",
-  "数据库",
-  "网络",
-  "监控",
-  "存储",
-]
+export const catalogTabs = ["已安装", "应用市场"]

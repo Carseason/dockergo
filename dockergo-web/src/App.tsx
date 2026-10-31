@@ -1,5 +1,4 @@
-import { MagnifyingGlass } from "@phosphor-icons/react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useState } from "react"
 import { Catalog } from "./components/Catalog"
 import { ContainerDetailsDialog } from "./components/ContainerDetailsDialog"
 import { Hero } from "./components/Hero"
@@ -11,11 +10,9 @@ import { useInstaller } from "./hooks/useInstaller"
 import type { DockerContainer } from "./types"
 
 export default function App() {
-  const [activeCategory, setActiveCategory] = useState("已安装")
-  const [query, setQuery] = useState("")
+  const [activeTab, setActiveTab] = useState("已安装")
   const [detailsContainer, setDetailsContainer] =
     useState<DockerContainer | null>(null)
-  const searchRef = useRef<HTMLInputElement>(null)
   const installer = useInstaller()
   const docker = useContainers()
 
@@ -39,54 +36,19 @@ export default function App() {
     )
   }, [docker.containers])
 
-  const filteredApps = useMemo(
-    () =>
-      apps.filter(
-        (app) =>
-          (activeCategory === "全部" || app.category === activeCategory) &&
-          `${app.name}${app.description}`
-            .toLocaleLowerCase()
-            .includes(query.trim().toLocaleLowerCase()),
-      ),
-    [activeCategory, query],
-  )
-
-  const filteredContainers = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase()
-    if (!normalizedQuery) return docker.containers
-
-    return docker.containers.filter((container) =>
-      `${container.name}${container.image}${container.status}${container.ports}`
-        .toLocaleLowerCase()
-        .includes(normalizedQuery),
-    )
-  }, [docker.containers, query])
-
-  useEffect(() => {
-    const focusSearch = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault()
-        searchRef.current?.focus()
-      }
-    }
-
-    document.addEventListener("keydown", focusSearch)
-    return () => document.removeEventListener("keydown", focusSearch)
-  }, [])
-
   const showInstalledApps = () => {
     installer.closeInstaller()
-    setActiveCategory("已安装")
+    setActiveTab("已安装")
     void docker.refresh()
   }
 
-  const selectCategory = (category: string) => {
-    setActiveCategory(category)
-    if (category === "已安装") void docker.refresh()
+  const selectTab = (tab: string) => {
+    setActiveTab(tab)
+    if (tab === "已安装") void docker.refresh()
   }
 
   const browseAllApps = () => {
-    setActiveCategory("全部")
+    setActiveTab("应用市场")
     document
       .getElementById("catalog")
       ?.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -103,32 +65,21 @@ export default function App() {
             <h1>应用商店</h1>
             <p>发现并快速部署你需要的服务</p>
           </div>
-          <label className="search-box">
-            <MagnifyingGlass size={18} />
-            <span className="sr-only">搜索应用</span>
-            <input
-              ref={searchRef}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="搜索应用..."
-            />
-            <kbd>⌘ K</kbd>
-          </label>
         </header>
 
         <div className="content">
           <Hero onBrowse={browseAllApps} />
 
           <Catalog
-            apps={filteredApps}
-            containers={filteredContainers}
+            apps={apps}
+            containers={docker.containers}
             installedAppImages={installedAppImages}
             containersLoading={docker.loading}
             containersError={docker.error}
             pendingContainerId={docker.pendingContainerId}
             containerActionError={docker.actionError}
-            activeCategory={activeCategory}
-            onCategoryChange={selectCategory}
+            activeTab={activeTab}
+            onTabChange={selectTab}
             onInstall={installer.openInstaller}
             onRefreshContainers={() => void docker.refresh()}
             onControlContainer={(id, action) => void docker.control(id, action)}
