@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-默认开发地址为 `http://localhost:5173`。
+开发与预览服务默认使用 `http://localhost:30076`。
 
 ## 检查与构建
 
