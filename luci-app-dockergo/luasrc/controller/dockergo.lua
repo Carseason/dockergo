@@ -9,6 +9,7 @@ local EXIT_MARKER = "__DOCKERGO_EXIT__"
 local CATALOG_PATH = "/usr/share/dockergo/catalog.json"
 local CATALOG_MAX_BYTES = 1024 * 1024
 local INSTALL_TASK_DIR = "/var/run/dockergo"
+local INSTALL_TASK_ID = "dockergo"
 local INSTALL_RUNNER = "/usr/libexec/dockergo-install"
 
 function index()
@@ -227,8 +228,8 @@ function api_install_app()
 	end
 
 	local suffix = task_suffix()
-	local task_id = "dockergo-install-" .. app.id .. "-" .. suffix
-	local task_path = INSTALL_TASK_DIR .. "/" .. task_id .. ".json"
+	local config_id = "dockergo-install-" .. app.id .. "-" .. suffix
+	local task_path = INSTALL_TASK_DIR .. "/" .. config_id .. ".json"
 	local task_config = {
 		appId = app.id,
 		title = app.title,
@@ -252,6 +253,12 @@ function api_install_app()
 		}
 	end
 
+	local current_task = require("luci.model.tasks").status(INSTALL_TASK_ID)
+	if current_task.running then
+		write_error(409, "TASK_BUSY", "DockerGo 安装任务正在执行，请等待当前任务完成")
+		return
+	end
+
 	if sys.call("mkdir -p " .. INSTALL_TASK_DIR .. " && chmod 700 " .. INSTALL_TASK_DIR) ~= 0 then
 		write_error(500, "TASK_CONFIG_FAILED", "无法创建安装任务目录")
 		return
@@ -266,18 +273,23 @@ function api_install_app()
 	file:close()
 	sys.call("chmod 600 " .. task_path)
 
-	local task_command = INSTALL_RUNNER .. " " .. task_id
+	local task_command = INSTALL_RUNNER .. " " .. config_id
 	local launch_command = string.format("/etc/init.d/tasks task_add %s %s -1 >/dev/null 2>&1",
-		task_id, require("luci.util").shellquote(task_command))
+		INSTALL_TASK_ID, require("luci.util").shellquote(task_command))
 	if sys.call(launch_command) ~= 0 then
 		os.remove(task_path)
-		write_error(500, "TASK_START_FAILED", "无法启动安装任务")
+		local task_status = require("luci.model.tasks").status(INSTALL_TASK_ID)
+		if task_status.running then
+			write_error(409, "TASK_BUSY", "DockerGo 安装任务正在执行，请等待当前任务完成")
+		else
+			write_error(500, "TASK_START_FAILED", "无法启动安装任务")
+		end
 		return
 	end
 
 	write_json(202, {
 		success = true,
-		taskId = task_id,
+		taskId = INSTALL_TASK_ID,
 		containerName = task_config.containerName,
 	})
 end
