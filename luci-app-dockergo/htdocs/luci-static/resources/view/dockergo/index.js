@@ -1,23 +1,5 @@
 'use strict';
-'require rpc';
 'require view';
-
-const callListContainers = rpc.declare({
-	object: 'luci.dockergo',
-	method: 'list'
-});
-
-const callControlContainer = rpc.declare({
-	object: 'luci.dockergo',
-	method: 'control',
-	params: [ 'id', 'action' ]
-});
-
-const callInspectContainer = rpc.declare({
-	object: 'luci.dockergo',
-	method: 'inspect',
-	params: [ 'id' ]
-});
 
 function loadModule(src) {
 	if (window.DockerGoMount)
@@ -70,10 +52,9 @@ return view.extend({
 	},
 
 	render: function(styleText) {
-		window.DockerGoLuci = Object.freeze({
-			listContainers: callListContainers,
-			inspectContainer: callInspectContainer,
-			controlContainer: callControlContainer
+		window.DockerGoConfig = Object.freeze({
+			apiBase: L.url('admin/services/dockergo/api'),
+			csrfToken: L.env.token
 		});
 
 		const host = E('div', {

@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
       port: 37001,
       proxy: env.DOCKERGO_ROUTER_URL
         ? {
-            "/ubus": {
+            "/cgi-bin/luci": {
               target: env.DOCKERGO_ROUTER_URL,
               changeOrigin: true,
             },

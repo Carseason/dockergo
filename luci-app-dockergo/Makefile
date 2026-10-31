@@ -3,9 +3,9 @@ include $(TOPDIR)/rules.mk
 LUCI_TITLE:=LuCI support for DockerGo
 LUCI_DEPENDS:=@(aarch64||arm||x86_64) \
 	+luci-base \
+	+luci-compat \
 	+docker \
-	+dockerd \
-	+rpcd-mod-ucode
+	+dockerd
 LUCI_PKGARCH:=all
 LUCI_MINIFY_JS:=0
 LUCI_MINIFY_CSS:=0

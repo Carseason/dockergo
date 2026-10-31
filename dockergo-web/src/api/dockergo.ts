@@ -1,137 +1,87 @@
 import type {
+  DockerApiError,
   DockerContainerAction,
   DockerContainerActionResponse,
   DockerContainerInspectResponse,
   DockerContainerListResponse,
 } from "../types"
 
-type LuCIBridge = {
-  listContainers: () => Promise<DockerContainerListResponse>
-  controlContainer: (
-    id: string,
-    action: DockerContainerAction,
-  ) => Promise<DockerContainerActionResponse>
-  inspectContainer: (id: string) => Promise<DockerContainerInspectResponse>
-}
-
-type LuCIWindow = Window & {
-  DockerGoLuci?: LuCIBridge
-  L?: {
-    env?: {
-      sessionid?: string
+declare global {
+  interface Window {
+    DockerGoConfig?: {
+      apiBase: string
+      csrfToken: string
     }
   }
 }
 
-type UbusResponse<T,> = {
-  result?: [number, T?]
-  error?: {
-    code?: number
-    message?: string
-  }
+type ErrorResponse = {
+  error?: DockerApiError
 }
 
-function getLuCIWindow(): LuCIWindow | undefined {
-  const currentWindow = window as LuCIWindow
-  if (currentWindow.DockerGoLuci) {
-    return currentWindow
-  }
+function getApiBase(): string {
+  const configuredBase =
+    window.DockerGoConfig?.apiBase ||
+    import.meta.env.VITE_DOCKERGO_API_URL ||
+    "/cgi-bin/luci/admin/services/dockergo/api"
 
-  try {
-    return window.parent as LuCIWindow
-  } catch {
-    return currentWindow
-  }
+  return configuredBase.replace(/\/$/, "")
 }
 
-async function callUbusDirectly<T>(
-  luciWindow: LuCIWindow,
-  method: string,
-  parameters: Record<string, string> = {},
-): Promise<T> {
-  const sessionId =
-    luciWindow.L?.env?.sessionid ||
-    window.sessionStorage.getItem("dockergo.ubusSession")
-
-  if (!sessionId) {
-    throw new Error(
-      "未检测到 LuCI 登录会话，请从 iStoreOS 的 DockerGo 菜单打开此页面。",
-    )
-  }
-
-  const endpoint = import.meta.env.VITE_DOCKERGO_UBUS_URL || "/ubus"
-  const response = await fetch(endpoint, {
-    method: "POST",
+async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${getApiBase()}/${path}`, {
     credentials: "same-origin",
+    cache: "no-store",
+    ...init,
     headers: {
-      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...init?.headers,
     },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: Date.now(),
-      method: "call",
-      params: [sessionId, "luci.dockergo", method, parameters],
-    }),
   })
 
-  if (!response.ok) {
-    throw new Error(`DockerGo 接口请求失败（HTTP ${response.status}）`)
+  let payload: T & ErrorResponse | undefined
+  try {
+    payload = ((await response.json()) as T & ErrorResponse)
+  } catch {
+    throw new Error(`DockerGo API 返回了无效响应（HTTP ${response.status}）`)
   }
 
-  const payload = (await response.json()) as UbusResponse<T>
-  if (payload.error) {
+  if (!response.ok) {
     throw new Error(
-      payload.error.message || `ubus 错误 ${payload.error.code ?? "unknown"}`,
+      payload.error?.message ||
+        `DockerGo API 请求失败（HTTP ${response.status}）`,
     )
   }
 
-  const [status, result] = payload.result || []
-  if (status !== 0 || !result) {
-    throw new Error(`DockerGo ubus 调用失败（状态码 ${status ?? "unknown"}）`)
-  }
-
-  return result
+  return payload
 }
 
-export async function listDockerContainers(): Promise<DockerContainerListResponse> {
-  const luciWindow = getLuCIWindow()
-  if (luciWindow?.DockerGoLuci?.listContainers) {
-    return luciWindow.DockerGoLuci.listContainers()
-  }
-
-  return callUbusDirectly<DockerContainerListResponse>(
-    luciWindow || window as LuCIWindow,
-    "list",
-  )
+export function listDockerContainers(): Promise<DockerContainerListResponse> {
+  return requestJson<DockerContainerListResponse>("containers")
 }
 
-export async function controlDockerContainer(
+export function controlDockerContainer(
   id: string,
   action: DockerContainerAction,
 ): Promise<DockerContainerActionResponse> {
-  const luciWindow = getLuCIWindow()
-  if (luciWindow?.DockerGoLuci?.controlContainer) {
-    return luciWindow.DockerGoLuci.controlContainer(id, action)
-  }
+  const csrfToken =
+    window.DockerGoConfig?.csrfToken ||
+    import.meta.env.VITE_DOCKERGO_CSRF_TOKEN ||
+    ""
 
-  return callUbusDirectly<DockerContainerActionResponse>(
-    luciWindow || window as LuCIWindow,
-    "control",
-    { id, action },
-  )
+  return requestJson<DockerContainerActionResponse>("control", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+    },
+    body: new URLSearchParams({ id, action, token: csrfToken }),
+  })
 }
 
-export async function inspectDockerContainer(
+export function inspectDockerContainer(
   id: string,
 ): Promise<DockerContainerInspectResponse> {
-  const luciWindow = getLuCIWindow()
-  if (luciWindow?.DockerGoLuci?.inspectContainer) {
-    return luciWindow.DockerGoLuci.inspectContainer(id)
-  }
-
-  return callUbusDirectly<DockerContainerInspectResponse>(
-    luciWindow || window as LuCIWindow,
-    "inspect",
-    { id },
+  return requestJson<DockerContainerInspectResponse>(
+    `inspect?id=${encodeURIComponent(id)}`,
   )
 }

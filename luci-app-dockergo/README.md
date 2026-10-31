@@ -1,20 +1,24 @@
 # luci-app-dockergo
 
-DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 会话和 ACL 保护的只读 Docker 容器列表接口，并加载 DockerGo React 前端。
+DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的独立 HTTP JSON API，并将 DockerGo React 前端直接挂载到 LuCI 页面。
 
-## 接口
+## JSON API
 
-ubus 对象：`luci.dockergo`
+接口前缀：`/cgi-bin/luci/admin/services/dockergo/api`
 
-方法：`list`
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/containers` | 获取全部 Docker 容器 |
+| `GET` | `/inspect?id=<容器 ID>` | 获取指定容器详情 |
+| `POST` | `/control` | 启动、暂停或恢复容器 |
 
-在路由器终端中可直接验证：
+`control` 接收 `application/x-www-form-urlencoded` 参数：
 
-```sh
-ubus call luci.dockergo list
-```
+- `id`：12 至 64 位十六进制容器 ID。
+- `action`：`start`、`pause` 或 `unpause`。
+- `token`：当前 LuCI 会话的 CSRF token，由挂载页自动注入。
 
-成功响应示例：
+容器列表成功响应示例：
 
 ```json
 {
@@ -39,10 +43,11 @@ ubus call luci.dockergo list
 
 ## 安全边界
 
-- 后端以固定参数执行 Docker CLI，不拼接任何请求数据。
-- ACL 只开放 `luci.dockergo.list`，不提供容器控制或命令执行权限。
-- 浏览器通过 LuCI 的 `rpc.declare()` 调用接口，沿用当前 LuCI 登录会话。
-- Docker Socket 不暴露到网络或浏览器。
+- API 位于 LuCI 的 `admin` 路由下，沿用当前 LuCI 登录会话。
+- 修改容器状态时必须提交 LuCI CSRF token。
+- 后端只执行固定 Docker 命令，容器 ID 和操作类型均经过白名单校验。
+- 前端只通过同源 HTTP JSON API 访问数据，不调用 ubus，也不暴露 Docker Socket。
+- 修改容器状态的接口只接受 `POST` 请求。
 
 ## 构建前端资源
 
@@ -57,4 +62,4 @@ pnpm build:luci
 
 ## 构建 IPK/APK
 
-将 `luci-app-dockergo` 放入 OpenWrt SDK 或源码树的 `package` 目录，确保已经更新 LuCI feed，然后通过包构建命令编译。该包依赖 `luci-base`、`docker`、`dockerd` 和 `rpcd-mod-ucode`。
+将 `luci-app-dockergo` 放入 OpenWrt SDK 或源码树的 `package` 目录，确保已经更新 LuCI feed，然后通过包构建命令编译。该包依赖 `luci-base`、`luci-compat`、`docker` 和 `dockerd`。

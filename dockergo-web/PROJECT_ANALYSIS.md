@@ -23,17 +23,17 @@
 - `data/apps.ts` 保存应用目录及默认端口。
 - `types.ts` 定义应用、视图、安装阶段和配置模型。
 - `hooks/useInstaller.ts` 管理安装状态、部署日志和定时器清理。
-- `hooks/useContainers.ts` 通过 LuCI RPC 加载真实 Docker 容器。
-- `api/dockergo.ts` 封装 LuCI 页面桥接和 ubus 开发模式调用。
+- `hooks/useContainers.ts` 通过插件 JSON API 加载真实 Docker 容器。
+- `api/dockergo.ts` 封装 DockerGo HTTP JSON API 客户端。
 - `components` 按目录、卡片、主视觉、安装弹窗和通知拆分。
 - `App.tsx` 只负责页面级筛选、视图切换和组件编排。
 
 ## iStoreOS 集成
 
-- `luci-app-dockergo` 提供标准 LuCI 菜单、ACL 和 ucode RPC 后端。
-- `luci.dockergo.list` 以只读方式返回全部 Docker 容器。
+- `luci-app-dockergo` 提供标准 LuCI 菜单和受登录保护的 HTTP JSON 后端。
+- `/admin/services/dockergo/api/containers` 返回全部 Docker 容器。
 - 已安装应用视图以接口结果为唯一数据源，不再使用预置容器数据。
-- LuCI ACL 只允许读取列表，不授予容器控制或命令执行权限。
+- JSON 后端只接受固定容器操作，并严格校验容器 ID。
 
 ## Figma 清理范围
 

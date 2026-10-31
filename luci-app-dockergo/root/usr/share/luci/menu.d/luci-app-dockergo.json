@@ -7,7 +7,6 @@
 			"path": "dockergo/index"
 		},
 		"depends": {
-			"acl": [ "luci-app-dockergo" ],
 			"fs": {
 				"/usr/bin/docker": "executable"
 			}
