@@ -35,6 +35,8 @@ body,
 
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -120,14 +122,14 @@ main {
 .topbar h1 {
   margin: 0;
   color: var(--navy);
-  font-size: 21px;
+  font-size: 24px;
   letter-spacing: -0.4px;
 }
 
 .topbar p {
   margin: 5px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .content {
@@ -173,7 +175,7 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 650;
   letter-spacing: 0.6px;
 }
@@ -181,7 +183,7 @@ main {
 .hero h2 {
   max-width: 490px;
   margin: 0;
-  font-size: clamp(25px, 2.6vw, 32px);
+  font-size: clamp(28px, 2.8vw, 36px);
   line-height: 1.22;
   letter-spacing: -1px;
 }
@@ -190,7 +192,7 @@ main {
   max-width: 480px;
   margin: 10px 0 17px;
   color: #d6e3ff;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -203,7 +205,7 @@ main {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 750;
   box-shadow: 0 8px 20px rgb(22 58 145 / 24%);
   transition: transform 160ms ease, box-shadow 160ms ease;
@@ -281,13 +283,13 @@ main {
 }
 
 .status-card strong {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .status-card div > span {
   margin-top: 2px;
   color: #69758a;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .status-card__icon {
@@ -335,14 +337,14 @@ main {
 .section-heading h2 {
   margin: 0;
   color: var(--navy);
-  font-size: 18px;
+  font-size: 20px;
   letter-spacing: -0.3px;
 }
 
 .section-heading p {
   margin: 5px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .text-button {
@@ -350,7 +352,7 @@ main {
   border: 0;
   background: transparent;
   color: var(--blue);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 650;
 }
 
@@ -385,7 +387,7 @@ main {
   border: 0;
   background: transparent;
   color: #687489;
-  font-size: 12px;
+  font-size: 14px;
   white-space: nowrap;
 }
 
@@ -461,7 +463,7 @@ main {
   color: #243049;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .container-card__heading code {
@@ -470,7 +472,7 @@ main {
   background: #f0f3f8;
   color: #687489;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .container-state {
@@ -479,7 +481,7 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .container-state i {
@@ -522,14 +524,14 @@ main {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .container-card__status {
   min-height: 0 !important;
   margin: 5px 0 12px !important;
   color: #657186 !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
 }
 
 .container-card__footer {
@@ -541,7 +543,7 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .container-card__ports {
@@ -567,7 +569,7 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-decoration: none;
   transition: background 160ms ease, color 160ms ease, scale 120ms ease;
@@ -589,7 +591,7 @@ main {
   border-radius: 6px;
   background: #f0f3f8;
   color: #687489;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -612,7 +614,7 @@ main {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 750;
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease, scale 120ms ease;
 }
@@ -640,7 +642,7 @@ main {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 750;
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease, scale 120ms ease;
 }
@@ -733,7 +735,7 @@ main {
   color: #243049;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .verified-badge {
@@ -751,7 +753,7 @@ main {
   display: block;
   margin-top: 4px;
   color: #737f93;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .install-button {
@@ -760,7 +762,7 @@ main {
   border-radius: 6px;
   background: #f1f5ff;
   color: #1f58d4;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 750;
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
@@ -782,7 +784,7 @@ main {
   min-height: 34px;
   margin: 11px 0 12px;
   color: #5f6b80;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -792,7 +794,7 @@ main {
   color: #737f93;
   display: flex;
   gap: 14px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .app-card__meta span {
@@ -822,7 +824,7 @@ main {
 
 .empty-state span {
   margin-top: 5px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .is-spinning {
@@ -905,7 +907,7 @@ main {
 
 .container-details__header span {
   color: var(--blue);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.7px;
 }
@@ -916,7 +918,7 @@ main {
   color: var(--navy);
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 20px;
+  font-size: 22px;
   text-wrap: balance;
 }
 
@@ -927,7 +929,7 @@ main {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .container-details__message {
@@ -937,7 +939,7 @@ main {
   place-content: center;
   justify-items: center;
   gap: 10px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .container-details__content {
@@ -965,13 +967,13 @@ main {
 .details-section__title h3 {
   margin: 0;
   color: #29364e;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .details-section__title > span {
   margin-left: auto;
   color: #7b879a;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .details-grid {
@@ -991,7 +993,7 @@ main {
 .details-grid dt,
 .details-code > span {
   color: #7b879a;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .details-grid dd {
@@ -1000,7 +1002,7 @@ main {
   color: #29364e;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -1022,7 +1024,7 @@ main {
   background: #172033;
   color: #dbe5f5;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.55;
 }
 
@@ -1032,7 +1034,7 @@ main {
   border-radius: 7px;
   background: #fff0f2;
   color: #a72b43;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .details-list {
@@ -1056,19 +1058,19 @@ main {
   color: #344158;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .details-list span {
   min-width: 0;
   overflow-wrap: anywhere;
   color: #69758a;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .details-list small {
   color: #8791a3;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .details-list--networks,
@@ -1079,7 +1081,7 @@ main {
 .details-empty {
   margin: 0;
   color: #8791a3;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .modal-close:disabled {
@@ -1095,7 +1097,7 @@ main {
 
 .modal-kicker {
   color: var(--blue);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.8px;
 }
@@ -1103,14 +1105,14 @@ main {
 .install-dialog h2 {
   margin: 5px 0 8px;
   color: var(--navy);
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .install-dialog > p {
   max-width: 350px;
   margin: 0 auto;
   color: #657186;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.7;
 }
 
@@ -1134,7 +1136,7 @@ main {
   margin-bottom: 7px;
   padding: 0;
   color: #37445b;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 750;
 }
 
@@ -1142,7 +1144,7 @@ main {
   display: block;
   margin-top: 6px;
   color: #69758a;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .port-mapping {
@@ -1156,7 +1158,7 @@ main {
   display: block;
   margin-bottom: 5px;
   color: #657186;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .port-mapping input,
@@ -1168,7 +1170,7 @@ main {
   outline: 0;
   background: var(--surface-soft);
   color: #27344b;
-  font-size: 11px;
+  font-size: 13px;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
@@ -1196,7 +1198,7 @@ main {
   border-radius: 5px;
   background: var(--blue-soft);
   color: var(--blue);
-  font-size: 8px;
+  font-size: 10px;
   font-style: normal;
   font-weight: 750;
 }
@@ -1215,7 +1217,7 @@ main {
 .directory-input > span {
   padding-left: 11px;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .directory-input input {
@@ -1254,13 +1256,13 @@ main {
 
 .install-options strong {
   color: #37445b;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .install-options small {
   margin-top: 3px;
   color: #687489;
-  font-size: 8px;
+  font-size: 10px;
   line-height: 1.4;
 }
 
@@ -1284,13 +1286,13 @@ main {
 
 .install-summary span {
   color: #69758a;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .install-summary strong {
   margin-top: 4px;
   color: #28354c;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .primary-button {
@@ -1305,7 +1307,7 @@ main {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 750;
   box-shadow: 0 8px 18px rgb(39 100 231 / 20%);
   transition: transform 160ms ease, background 160ms ease;
@@ -1334,12 +1336,12 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .progress-header strong {
   color: var(--blue);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .progress-track {
@@ -1388,7 +1390,7 @@ main {
 .log-title strong {
   color: #a0acc0;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 550;
 }
 
@@ -1402,7 +1404,7 @@ main {
 .log-lines p {
   margin: 0 0 7px;
   color: #c3ccda;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -1419,7 +1421,7 @@ main {
 
 .log-cursor {
   color: #9ab7f8;
-  font-size: 11px;
+  font-size: 13px;
   font-style: normal;
   animation: blink 1s steps(1) infinite;
 }
@@ -1429,8 +1431,8 @@ main {
   min-width: 270px;
   padding: 12px 12px 12px 14px;
   position: fixed;
-  right: 28px;
-  bottom: 28px;
+  top: 24px;
+  left: 50%;
   z-index: 40;
   border-radius: 12px;
   background: var(--surface);
@@ -1441,6 +1443,7 @@ main {
   display: flex;
   align-items: center;
   gap: 10px;
+  transform: translateX(-50%);
   animation: toast-in 300ms ease;
   transition:
     opacity 150ms ease-in,
@@ -1450,7 +1453,7 @@ main {
 
 .toast--closing {
   opacity: 0;
-  transform: translateY(-12px);
+  transform: translate(-50%, -12px);
   filter: blur(4px);
 }
 
@@ -1481,13 +1484,13 @@ main {
 .toast strong {
   display: block;
   color: #243049;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .toast p {
   margin: 3px 0 0;
   color: #687489;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.45;
   overflow-wrap: anywhere;
   text-wrap: pretty;
@@ -1529,7 +1532,7 @@ main {
 }
 
 @keyframes toast-in {
-  from { transform: translateY(12px); opacity: 0; }
+  from { transform: translate(-50%, -12px); opacity: 0; }
 }
 
 @keyframes blink {
@@ -1631,9 +1634,8 @@ main {
 
   .toast {
     min-width: 0;
-    right: 16px;
-    bottom: 16px;
-    left: 16px;
+    width: calc(100vw - 32px);
+    top: 16px;
   }
 }
 
