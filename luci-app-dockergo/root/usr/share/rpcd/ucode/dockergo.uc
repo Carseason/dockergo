@@ -4,15 +4,7 @@
 
 import { popen } from 'fs';
 
-const DOCKER_COMMAND = [
-	'/usr/bin/docker',
-	'container',
-	'ls',
-	'--all',
-	'--no-trunc',
-	'--format',
-	'{{json .}}',
-];
+const DOCKER_COMMAND = "/usr/bin/docker container ls --all --no-trunc --format '{{json .}}'";
 
 function string_value(value) {
 	return value == null ? '' : `${value}`;
