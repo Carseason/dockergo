@@ -1709,107 +1709,6 @@ main {
   opacity: 0.48;
 }
 
-.install-progress {
-  margin-top: 22px;
-  text-align: left;
-}
-
-.progress-header {
-  margin-bottom: 7px;
-  color: #687489;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-}
-
-.progress-header strong {
-  color: var(--blue);
-  font-size: 12px;
-}
-
-.progress-track {
-  width: 100%;
-  height: 6px;
-  overflow: hidden;
-  border: 0;
-  border-radius: 4px;
-  background: #e3e8f0;
-  appearance: none;
-}
-
-.progress-track::-webkit-progress-bar {
-  border-radius: 4px;
-  background: #e3e8f0;
-}
-
-.progress-track::-webkit-progress-value {
-  border-radius: 4px;
-  background: var(--blue);
-  transition: width 450ms ease;
-}
-
-.progress-track::-moz-progress-bar {
-  border-radius: 4px;
-  background: var(--blue);
-}
-
-.install-log {
-  margin: 16px 0;
-  overflow: hidden;
-  border-radius: 9px;
-  background: #111827;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 5%);
-}
-
-.log-title {
-  min-height: 34px;
-  padding: 0 13px;
-  border-bottom: 1px solid rgb(255 255 255 / 7%);
-  background: #192235;
-  display: flex;
-  align-items: center;
-}
-
-.log-title strong {
-  color: #a0acc0;
-  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 11px;
-  font-weight: 550;
-}
-
-.log-lines {
-  height: 200px;
-  overflow-y: auto;
-  padding: 11px 13px;
-  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-}
-
-.log-lines p {
-  margin: 0 0 7px;
-  color: #c3ccda;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.log-lines p > span {
-  width: 24px;
-  display: inline-block;
-  color: #69768d;
-  user-select: none;
-}
-
-.log-lines p.success {
-  color: #79e5aa;
-}
-
-.log-cursor {
-  color: #9ab7f8;
-  font-size: 13px;
-  font-style: normal;
-  animation: blink 1s steps(1) infinite;
-}
-
 .toast {
   width: min(360px, calc(100vw - 40px));
   min-width: 270px;
@@ -1922,10 +1821,6 @@ main {
 
 @keyframes toast-in {
   from { transform: translate(-50%, -12px); opacity: 0; }
-}
-
-@keyframes blink {
-  50% { opacity: 0; }
 }
 
 @keyframes spin {
@@ -2041,10 +1936,6 @@ main {
 
   .port-mapping > em {
     display: none;
-  }
-
-  .log-lines {
-    height: 170px;
   }
 
   .toast {

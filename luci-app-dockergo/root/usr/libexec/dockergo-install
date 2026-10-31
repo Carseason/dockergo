@@ -1,0 +1,111 @@
+#!/usr/bin/lua
+
+local jsonc = require "luci.jsonc"
+local util = require "luci.util"
+
+io.stdout:setvbuf("line")
+
+local task_id = arg[1] or ""
+if task_id:match("^dockergo%-install%-[a-z0-9._-]+%-[a-f0-9]+$") == nil then
+	print("[错误] 安装任务 ID 无效")
+	os.exit(2)
+end
+
+local config_path = "/var/run/dockergo/" .. task_id .. ".json"
+local file = io.open(config_path, "r")
+if not file then
+	print("[错误] 安装任务配置不存在")
+	os.exit(2)
+end
+
+local contents = file:read("*a") or ""
+file:close()
+os.remove(config_path)
+
+local config = jsonc.parse(contents)
+if type(config) ~= "table" or type(config.appId) ~= "string" or
+	type(config.title) ~= "string" or type(config.image) ~= "string" or
+	type(config.containerName) ~= "string" then
+	print("[错误] 安装任务配置无效")
+	os.exit(2)
+end
+
+local function command_string(arguments)
+	local quoted = {}
+	for index, argument in ipairs(arguments) do
+		quoted[index] = util.shellquote(tostring(argument))
+	end
+	return table.concat(quoted, " ")
+end
+
+local function execute(label, arguments, quiet)
+	print(label)
+	local redirect = quiet and " >/dev/null 2>&1" or " 2>&1"
+	local status, reason, code = os.execute(command_string(arguments) .. redirect)
+	return status == 0 or (status == true and reason == "exit" and code == 0)
+end
+
+print(string.format("[准备] 正在安装 %s", config.title))
+
+if not execute("[网络] 检查 DockerGo 专用网络",
+	{"/usr/bin/docker", "network", "inspect", "dockergo_default"}, true) then
+	if not execute("[网络] 创建 DockerGo 专用网络",
+		{"/usr/bin/docker", "network", "create", "dockergo_default"}) then
+		print("[错误] 无法创建 DockerGo 专用网络")
+		os.exit(1)
+	end
+end
+
+if config.volume then
+	if type(config.volume.host) ~= "string" or type(config.volume.container) ~= "string" or
+		not execute("[存储] 创建数据目录 " .. config.volume.host,
+			{"/bin/mkdir", "-p", config.volume.host}) then
+		print("[错误] 无法创建数据目录")
+		os.exit(1)
+	end
+end
+
+if not execute("[镜像] 拉取 " .. config.image,
+	{"/usr/bin/docker", "image", "pull", config.image}) then
+	print("[错误] 镜像拉取失败")
+	os.exit(1)
+end
+
+local create = {
+	"/usr/bin/docker", "container", "create",
+	"--name", config.containerName,
+	"--label", "io.dockergo.app-id=" .. config.appId,
+	"--network", "dockergo_default",
+	"--restart", config.autoStart and "unless-stopped" or "no",
+}
+
+if config.port then
+	create[#create + 1] = "--publish"
+	create[#create + 1] = string.format("0.0.0.0:%d:%d/tcp", config.port.host, config.port.container)
+end
+if config.volume then
+	create[#create + 1] = "--volume"
+	create[#create + 1] = config.volume.host .. ":" .. config.volume.container
+end
+for key, value in pairs(config.environment or {}) do
+	create[#create + 1] = "--env"
+	create[#create + 1] = key .. "=" .. value
+end
+
+create[#create + 1] = config.image
+for _, argument in ipairs(config.command or {}) do
+	create[#create + 1] = argument
+end
+
+if not execute("[容器] 创建 " .. config.containerName, create) then
+	print("[错误] 容器创建失败，请检查端口、目录和镜像配置")
+	os.exit(1)
+end
+
+if not execute("[容器] 启动 " .. config.containerName,
+	{"/usr/bin/docker", "container", "start", config.containerName}) then
+	print("[错误] 容器启动失败")
+	os.exit(1)
+end
+
+print(string.format("[完成] %s 已安装并启动，容器名称：%s", config.title, config.containerName))

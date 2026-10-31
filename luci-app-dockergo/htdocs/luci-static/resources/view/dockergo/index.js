@@ -17,6 +17,75 @@ function loadModule(src) {
 	});
 }
 
+function loadStylesheet(id, href) {
+	if (document.getElementById(id))
+		return;
+
+	const link = document.createElement('link');
+	link.id = id;
+	link.rel = 'stylesheet';
+	link.href = href;
+	document.head.appendChild(link);
+}
+
+function loadClassicScript(src, ready) {
+	if (ready())
+		return Promise.resolve();
+
+	return new Promise(function(resolve, reject) {
+		const script = document.createElement('script');
+		script.src = src;
+		script.onload = resolve;
+		script.onerror = function() {
+			reject(new Error('无法加载系统任务日志组件'));
+		};
+		document.head.appendChild(script);
+	});
+}
+
+function loadTaskDialog() {
+	loadStylesheet('dockergo-xterm-style', L.resource('xterm/xterm.css'));
+	loadStylesheet('dockergo-taskd-style', L.resource('tasks/tasks.css'));
+
+	return loadClassicScript(L.resource('xterm/xterm.js'), function() {
+		return typeof window.Terminal === 'function';
+	}).then(function() {
+		return loadClassicScript(L.resource('tasks/tasks.js'), function() {
+			return Boolean(window.taskd && window.taskd.show_log);
+		});
+	}).then(function() {
+		window.taskd.csrfToken = L.env.token;
+		window.taskd.show_mask_on_stopped = true;
+		window.taskd.i18n = {
+			'Stop running task?': '停止正在运行的任务？',
+			'Finished at:': '完成于：',
+			'Failed at:': '失败于：',
+			'Lost login status': '登录状态已失效',
+			'Fetch log failed, retrying...': '日志获取失败，正在重试…',
+			'Task does not exist or has been deleted': '任务不存在或已删除'
+		};
+		window.taskd.dialog_template = `
+			<div id="tasks_dialog">
+				<div class="dialog-title-bar">
+					<span class="dialog-title" id="tasks_id"></span>
+					<span class="dialog-icons">
+						<span class="dialog-icon dialog-icon-close" title="停止并关闭"></span>
+						<span class="dialog-icon dialog-icon-min" title="隐藏"></span>
+					</span>
+				</div>
+				<div class="dialog-content">
+					<div id="tasks_xterm_log"></div>
+					<div id="tasks_result_mask">
+						<span class="tasks_result_success">任务执行成功</span>
+						<span class="tasks_result_failed">任务执行失败</span>
+						<br>
+						<span>点击右上角关闭，或点击此处查看日志</span>
+					</div>
+				</div>
+			</div>`;
+	});
+}
+
 return view.extend({
 	load: function() {
 		return fetch(L.resource('dockergo/app/manifest.json'), { cache: 'no-store' })
@@ -43,7 +112,8 @@ return view.extend({
 
 				return Promise.all([
 					loadModule(L.resource('dockergo/app/' + entry.file)),
-					Promise.all(styles)
+					Promise.all(styles),
+					loadTaskDialog()
 				]);
 			})
 			.then(function(result) {

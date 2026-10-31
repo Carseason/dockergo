@@ -9,6 +9,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | `GET` | `/catalog` | 获取 `/usr/share/dockergo/catalog.json` 中的应用目录 |
+| `POST` | `/install` | 创建应用安装系统任务并返回任务 ID |
 | `GET` | `/containers` | 获取全部 Docker 容器 |
 | `GET` | `/inspect?id=<容器 ID>` | 获取指定容器详情 |
 | `GET` | `/logs?id=<容器 ID>` | 获取指定容器最近 300 行日志 |
@@ -25,6 +26,8 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 - `token`：当前 LuCI 会话的 CSRF token，由挂载页自动注入。
 
 `remove` 接收同样格式的 `id` 和 `token` 参数。该操作只删除容器，保留镜像和数据卷。
+
+`install` 接收 `appId`、`hostPort`、`dataDirectory`、`autoStart` 和 `token`。后端只采纳用户可配置值，镜像、容器端口、挂载目标、环境变量和启动命令均重新从应用目录读取。接口通过 `taskd` 启动 `/usr/libexec/dockergo-install`，前端使用系统任务弹窗实时展示安装日志。
 
 容器列表成功响应示例：
 
@@ -54,6 +57,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 - API 位于 LuCI 的 `admin` 路由下，沿用当前 LuCI 登录会话。
 - 修改容器状态时必须提交 LuCI CSRF token。
 - 后端只执行固定 Docker 命令，容器 ID 和操作类型均经过白名单校验。
+- 安装任务只执行固定安装程序；数据目录被限制在 `/docker/apps/`，用户输入不会作为 Docker 命令执行。
 - 前端只通过同源 HTTP JSON API 访问数据，不调用 ubus，也不暴露 Docker Socket。
 - 修改容器状态的接口只接受 `POST` 请求。
 
@@ -70,4 +74,4 @@ pnpm build:luci
 
 ## 构建 IPK/APK
 
-将 `luci-app-dockergo` 放入 OpenWrt SDK 或源码树的 `package` 目录，确保已经更新 LuCI feed，然后通过包构建命令编译。该包依赖 `luci-base`、`luci-compat`、`docker` 和 `dockerd`。
+将 `luci-app-dockergo` 放入 OpenWrt SDK 或源码树的 `package` 目录，确保已经更新 LuCI feed，然后通过包构建命令编译。该包依赖 `luci-base`、`luci-compat`、`luci-lib-taskd`、`docker` 和 `dockerd`。

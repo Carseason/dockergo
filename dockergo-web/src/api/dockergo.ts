@@ -10,6 +10,8 @@ import type {
   DockerContainerListResponse,
   DockerContainerLogsResponse,
   DockerContainerRemoveResponse,
+  DockerInstallResponse,
+  InstallConfiguration,
 } from "../types"
 
 declare global {
@@ -232,5 +234,29 @@ export function removeDockerContainer(
       "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
     },
     body: new URLSearchParams({ id, token: csrfToken }),
+  })
+}
+
+export function installCatalogApp(
+  appId: string,
+  configuration: InstallConfiguration,
+): Promise<DockerInstallResponse> {
+  const csrfToken =
+    window.DockerGoConfig?.csrfToken ||
+    import.meta.env.VITE_DOCKERGO_CSRF_TOKEN ||
+    ""
+
+  return requestJson<DockerInstallResponse>("install", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+    },
+    body: new URLSearchParams({
+      appId,
+      hostPort: configuration.hostPort,
+      dataDirectory: configuration.dataDirectory,
+      autoStart: configuration.autoStart ? "1" : "0",
+      token: csrfToken,
+    }),
   })
 }

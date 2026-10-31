@@ -10,6 +10,7 @@ import { Toast, type ToastVariant } from "./components/Toast"
 import { useCatalog } from "./hooks/useCatalog"
 import { useContainers } from "./hooks/useContainers"
 import { useInstaller } from "./hooks/useInstaller"
+import { showSystemTaskLog } from "./systemTasks"
 import type { DockerContainer } from "./types"
 
 type ToastNotice = {
@@ -72,26 +73,37 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
   const docker = useContainers(handleContainerError)
   const catalog = useCatalog(handleCatalogError)
 
-  const announceInstallSuccess = useCallback(() => {
-    if (!installer.lastInstalledApp) return
-    showToast(
-      "success",
-      "部署任务已完成",
-      `${installer.lastInstalledApp} 已成功安装并运行`,
-    )
-  }, [installer.lastInstalledApp, showToast])
+  const confirmInstallation = useCallback(async () => {
+    try {
+      const task = await installer.startInstallation()
+      if (!task) return
 
-  const closeInstaller = useCallback(() => {
-    if (installer.phase === "complete") announceInstallSuccess()
-    installer.closeInstaller()
-  }, [announceInstallSuccess, installer.closeInstaller, installer.phase])
+      showSystemTaskLog(task.taskId, (exitCode) => {
+        setActiveTab("已安装")
+        void docker.refresh()
 
-  const showInstalledApps = useCallback(() => {
-    announceInstallSuccess()
-    installer.closeInstaller()
-    setActiveTab("已安装")
-    void docker.refresh()
-  }, [announceInstallSuccess, docker.refresh, installer.closeInstaller])
+        if (exitCode === 0) {
+          showToast(
+            "success",
+            "部署任务已完成",
+            `${task.appTitle} 已安装为容器 ${task.containerName}`,
+          )
+        } else {
+          showToast(
+            "error",
+            "应用安装失败",
+            `${task.appTitle} 安装任务退出，错误码 ${exitCode}`,
+          )
+        }
+      })
+    } catch (installError) {
+      showToast(
+        "error",
+        "无法启动安装任务",
+        installError instanceof Error ? installError.message : "应用安装失败",
+      )
+    }
+  }, [docker.refresh, installer.startInstallation, showToast])
 
   const confirmRemoveContainer = useCallback(async () => {
     if (!removeContainer) return
@@ -121,13 +133,11 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
       {installer.selectedApp && installer.configuration && (
         <InstallDialog
           app={installer.selectedApp}
-          phase={installer.phase}
           configuration={installer.configuration}
-          logs={installer.logs}
+          submitting={installer.submitting}
           onConfigurationChange={installer.updateConfiguration}
-          onInstall={installer.startInstallation}
-          onClose={closeInstaller}
-          onShowInstalled={showInstalledApps}
+          onInstall={() => void confirmInstallation()}
+          onClose={installer.closeInstaller}
         />
       )}
 

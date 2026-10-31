@@ -1,6 +1,6 @@
 # DockerGo Web
 
-DockerGo 的应用市场前端。项目使用 React、TypeScript 和 Vite，提供应用搜索、分类筛选、安装配置、部署进度，以及通过 DockerGo JSON API 获取真实 Docker 容器的已安装应用视图。
+DockerGo 的应用市场前端。项目使用 React、TypeScript 和 Vite，提供应用安装配置、iStoreOS 系统任务日志，以及通过 DockerGo JSON API 获取真实 Docker 容器的已安装应用视图。
 
 ## 开发
 
@@ -31,7 +31,7 @@ pnpm build:luci
 - `src/components`：页面组件和安装弹窗
 - `src/api`：DockerGo HTTP JSON API 客户端
 - `src/data`：应用目录数据
-- `src/hooks`：安装流程和 Docker 容器查询状态
+- `src/hooks`：安装任务提交和 Docker 容器查询状态
 - `src/types.ts`：共享领域类型
 - `src/styles.css`：全局设计令牌、组件样式和响应式规则
 

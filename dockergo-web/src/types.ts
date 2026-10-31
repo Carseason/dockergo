@@ -133,10 +133,15 @@ export type DockerContainerRemoveResponse = {
   error?: DockerApiError
 }
 
-export type InstallPhase = "configure" | "installing" | "complete"
-
 export type InstallConfiguration = {
   hostPort: string
   dataDirectory: string
   autoStart: boolean
+}
+
+export type DockerInstallResponse = {
+  success: boolean
+  taskId: string
+  containerName: string
+  error?: DockerApiError
 }
