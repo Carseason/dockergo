@@ -57,7 +57,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 - API 位于 LuCI 的 `admin` 路由下，沿用当前 LuCI 登录会话。
 - 修改容器状态时必须提交 LuCI CSRF token。
 - 后端只执行固定 Docker 命令，容器 ID 和操作类型均经过白名单校验。
-- 安装任务只执行固定安装程序；数据目录被限制在 `/docker/apps/`，用户输入不会作为 Docker 命令执行。
+- 安装任务只执行固定安装程序；数据目录被限制在 `/docker/apps/` 或 `/mnt/<磁盘>/`，用户输入不会作为 Docker 命令执行。
 - 前端只通过同源 HTTP JSON API 访问数据，不调用 ubus，也不暴露 Docker Socket。
 - 修改容器状态的接口只接受 `POST` 请求。
 

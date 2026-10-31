@@ -140,9 +140,15 @@ local function valid_app_id(app_id)
 end
 
 local function valid_data_directory(path)
-	return type(path) == "string" and #path >= 14 and #path <= 240 and
-		path:match("^/docker/apps/[A-Za-z0-9][A-Za-z0-9._/-]*$") ~= nil and
-		path:find("..", 1, true) == nil and path:find("//", 1, true) == nil
+	if type(path) ~= "string" or #path > 240 or
+		path:find("..", 1, true) ~= nil or path:find("//", 1, true) ~= nil then
+		return false
+	end
+
+	local app_data_path = path:match("^/docker/apps/[A-Za-z0-9][A-Za-z0-9._/-]*$") ~= nil
+	local mounted_data_path = path:match(
+		"^/mnt/[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._/-]*$") ~= nil
+	return app_data_path or mounted_data_path
 end
 
 local function task_suffix()
@@ -198,7 +204,7 @@ function api_install_app()
 		data_directory = http.formvalue("dataDirectory")
 		if not valid_data_directory(data_directory) or
 			type(volumes[1].container) ~= "string" or volumes[1].container:sub(1, 1) ~= "/" then
-			write_error(400, "INVALID_DATA_DIRECTORY", "数据目录必须位于 /docker/apps/ 下")
+			write_error(400, "INVALID_DATA_DIRECTORY", "数据目录必须位于 /docker/apps/ 或 /mnt/<磁盘>/ 下")
 			return
 		end
 	end
