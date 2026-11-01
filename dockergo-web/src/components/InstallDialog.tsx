@@ -187,22 +187,24 @@ export function InstallDialog({
             )
           })}
 
-          <div className="install-options">
-            <label>
-              <input
-                type="checkbox"
-                disabled={submitting}
-                checked={configuration.autoStart}
-                onChange={(event) =>
-                  onConfigurationChange({ autoStart: event.target.checked })
-                }
-              />
-              <span>
-                <strong>自动启动</strong>
-                <small>Docker 启动时自动运行应用</small>
-              </span>
-            </label>
-          </div>
+          {app.autoStart !== undefined && (
+            <div className="install-options">
+              <label>
+                <input
+                  type="checkbox"
+                  disabled={submitting}
+                  checked={configuration.autoStart}
+                  onChange={(event) =>
+                    onConfigurationChange({ autoStart: event.target.checked })
+                  }
+                />
+                <span>
+                  <strong>自动启动</strong>
+                  <small>Docker 启动时自动运行应用</small>
+                </span>
+              </label>
+            </div>
+          )}
 
           <div className="install-summary">
             <div>

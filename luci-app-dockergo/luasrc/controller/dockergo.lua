@@ -111,6 +111,9 @@ local function valid_catalog(catalog)
 		if app.command ~= nil and type(app.command) ~= "table" then
 			return false, string.format("应用 %s 的启动命令无效", app.id)
 		end
+		if app.autoStart ~= nil and type(app.autoStart) ~= "boolean" then
+			return false, string.format("应用 %s 的自动启动配置无效", app.id)
+		end
 	end
 
 	return true
@@ -388,7 +391,7 @@ function api_install_app()
 		title = app.title,
 		image = app.image,
 		containerName = app.id .. "-" .. suffix,
-		autoStart = http.formvalue("autoStart") == "1",
+		autoStart = type(app.autoStart) == "boolean" and http.formvalue("autoStart") == "1",
 		environment = environment,
 		command = command,
 		ports = task_ports,

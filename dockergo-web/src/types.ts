@@ -20,6 +20,7 @@ export type CatalogApp = {
   volumes: CatalogVolume[]
   environment: Record<string, string>
   command: string[]
+  autoStart?: boolean
 }
 
 export type CatalogResponse = {

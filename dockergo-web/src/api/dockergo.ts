@@ -118,6 +118,9 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
   ) {
     return null
   }
+  if (value.autoStart !== undefined && typeof value.autoStart !== "boolean") {
+    return null
+  }
 
   const tags = Array.isArray(value.tags)
     ? value.tags.filter((tag): tag is string => typeof tag === "string")
@@ -155,6 +158,8 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
     volumes,
     environment,
     command,
+    autoStart:
+      typeof value.autoStart === "boolean" ? value.autoStart : undefined,
   }
 }
 

@@ -8,6 +8,7 @@ apps:
       - Web
       - 反向代理
     image: "nginx:1.30.5-alpine"
+    autoStart: true
     ports:
       - container: 80
         host: 8080

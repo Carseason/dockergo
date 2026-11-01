@@ -23,6 +23,8 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 插件携带的 `/usr/share/dockergo/catalog.json` 与生成结果保持一致，并由 `/catalog` 接口直接读取。
 存储项可通过 `volumes[].type` 声明为 `directory` 或 `file`，省略时默认为
 `directory`。文件类型会将宿主机文件直接映射到容器内的 `container` 路径。
+应用仅在声明布尔字段 `autoStart` 时向用户显示自动启动选项，字段值作为默认选择；
+未声明该字段的应用不会显示该选项，后端也会强制关闭 Docker 重启策略。
 
 `control` 接收 `application/x-www-form-urlencoded` 参数：
 
