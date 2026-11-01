@@ -47,6 +47,9 @@ export function Catalog({
   onRemoveContainer,
 }: CatalogProps) {
   const isInstalled = activeTab === "已安装"
+  const installedContainers = containers.filter(
+    (container) => container.managed || Boolean(container.appId),
+  )
 
   return (
     <section className="catalog" id="catalog">
@@ -94,9 +97,9 @@ export function Catalog({
             <strong>正在读取 Docker 容器</strong>
             <span>正在通过 iStoreOS 获取最新状态</span>
           </div>
-        ) : containers.length > 0 ? (
+        ) : installedContainers.length > 0 ? (
           <div className="container-grid">
-            {containers.map((container) => (
+            {installedContainers.map((container) => (
               <ContainerCard
                 key={container.id}
                 container={container}
@@ -112,8 +115,8 @@ export function Catalog({
         ) : (
           <div className="empty-state" role="status">
             <MagnifyingGlass size={28} />
-            <strong>暂无 Docker 容器</strong>
-            <span>设备上还没有创建任何容器</span>
+            <strong>暂无已安装应用</strong>
+            <span>尚未通过 DockerGo 创建任何容器</span>
           </div>
         )
       ) : appsLoading ? (
