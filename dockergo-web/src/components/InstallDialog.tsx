@@ -179,8 +179,23 @@ export function InstallDialog({
             )
           })}
 
-          {app.autoStart !== undefined && (
-            <div className="install-options">
+          <div className="install-options">
+            <label>
+              <input
+                type="checkbox"
+                disabled={submitting}
+                checked={configuration.startNow}
+                onChange={(event) =>
+                  onConfigurationChange({ startNow: event.target.checked })
+                }
+              />
+              <span>
+                <strong>立即启动</strong>
+                <small>安装完成后立即启动容器</small>
+              </span>
+            </label>
+
+            {app.autoStart !== undefined && (
               <label>
                 <input
                   type="checkbox"
@@ -195,8 +210,8 @@ export function InstallDialog({
                   <small>Docker 启动时自动运行应用</small>
                 </span>
               </label>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="install-summary">
             <div>

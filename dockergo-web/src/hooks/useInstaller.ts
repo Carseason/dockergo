@@ -6,6 +6,7 @@ function getDefaultConfiguration(app: CatalogApp): InstallConfiguration {
   return {
     ports: app.ports.map((port) => String(port.port)),
     volumes: app.volumes.map(() => ""),
+    startNow: true,
     autoStart: app.autoStart ?? false,
   }
 }

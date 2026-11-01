@@ -27,7 +27,7 @@ local config = jsonc.parse(contents)
 if type(config) ~= "table" or type(config.appId) ~= "string" or
 	type(config.title) ~= "string" or type(config.version) ~= "string" or
 	type(config.instanceId) ~= "string" or type(config.image) ~= "string" or
-	type(config.containerName) ~= "string" then
+	type(config.containerName) ~= "string" or type(config.startNow) ~= "boolean" then
 	print("[错误] 安装任务配置无效")
 	os.exit(2)
 end
@@ -167,10 +167,13 @@ if not execute("[容器] 创建 " .. config.containerName, create) then
 	os.exit(1)
 end
 
-if not execute("[容器] 启动 " .. config.containerName,
-	{"/usr/bin/docker", "container", "start", config.containerName}) then
-	print("[错误] 容器启动失败")
-	os.exit(1)
+if config.startNow then
+	if not execute("[容器] 启动 " .. config.containerName,
+		{"/usr/bin/docker", "container", "start", config.containerName}) then
+		print("[错误] 容器启动失败")
+		os.exit(1)
+	end
+	print(string.format("[完成] %s 已安装并启动，容器名称：%s", config.title, config.containerName))
+else
+	print(string.format("[完成] %s 已安装但未启动，容器名称：%s", config.title, config.containerName))
 end
-
-print(string.format("[完成] %s 已安装并启动，容器名称：%s", config.title, config.containerName))

@@ -385,6 +385,12 @@ function api_install_app()
 		end
 	end
 
+	local start_now = http.formvalue("startNow")
+	if start_now ~= nil and start_now ~= "0" and start_now ~= "1" then
+		write_error(400, "INVALID_START_OPTION", "立即启动选项无效")
+		return
+	end
+
 	local suffix = task_suffix()
 	local config_id = "dockergo-install-" .. app.id .. "-" .. suffix
 	local task_path = INSTALL_TASK_DIR .. "/" .. config_id .. ".json"
@@ -395,6 +401,7 @@ function api_install_app()
 		image = app.image,
 		instanceId = suffix,
 		containerName = "dgo_" .. app.id .. "_" .. app.version .. "_" .. suffix,
+		startNow = start_now ~= "0",
 		autoStart = type(app.autoStart) == "boolean" and http.formvalue("autoStart") == "1",
 		environment = environment,
 		command = command,

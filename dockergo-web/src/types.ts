@@ -143,6 +143,7 @@ export type DockerContainerRemoveResponse = {
 export type InstallConfiguration = {
   ports: string[]
   volumes: string[]
+  startNow: boolean
   autoStart: boolean
 }
 

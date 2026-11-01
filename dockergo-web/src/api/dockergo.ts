@@ -279,6 +279,7 @@ export function installCatalogApp(
       appId,
       ports: JSON.stringify(configuration.ports),
       volumes: JSON.stringify(configuration.volumes),
+      startNow: configuration.startNow ? "1" : "0",
       autoStart: configuration.autoStart ? "1" : "0",
       token: csrfToken,
     }),
