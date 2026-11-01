@@ -14,7 +14,7 @@ LUCI_MINIFY_CSS:=0
 PKG_LICENSE:=GPL-2.0-or-later
 PKG_MAINTAINER:=DockerGo contributors
 PKG_VERSION:=0.1.0
-PKG_RELEASE:=17
+PKG_RELEASE:=18
 
 include $(TOPDIR)/feeds/luci/luci.mk
 

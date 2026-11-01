@@ -20,13 +20,6 @@ export function AppCard({ app, onInstall }: AppCardProps) {
             <div className="app-card__name">
               <strong>{app.title}</strong>
             </div>
-            <div className="app-card__tags" aria-label="应用标签">
-              {app.tags.map((tag) => (
-                <span className="category-label" key={tag}>
-                  {tag}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
         <code className="app-card__id">{app.id}</code>
@@ -36,6 +29,13 @@ export function AppCard({ app, onInstall }: AppCardProps) {
         <p className="app-card__description" title={app.description}>
           {app.description}
         </p>
+        <div className="app-card__tags" aria-label="应用标签">
+          {app.tags.map((tag) => (
+            <span className="category-label" key={tag}>
+              {tag}
+            </span>
+          ))}
+        </div>
         {app.command.length > 0 && (
           <p className="app-card__stats">
             <span>自定义命令</span>

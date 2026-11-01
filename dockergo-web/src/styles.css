@@ -825,7 +825,7 @@ main {
 
 .app-card__tags {
   min-height: 16px;
-  margin-top: 4px;
+  margin-top: 8px;
   display: flex;
   flex-wrap: wrap;
   gap: 4px 8px;
