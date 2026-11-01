@@ -30,7 +30,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 
 `remove` 接收同样格式的 `id` 和 `token` 参数。该操作只删除容器，保留镜像和数据卷。
 
-`install` 接收 `appId`、`hostPort`、`dataDirectory`、`autoStart` 和 `token`。`dataDirectory` 可留空，留空时不创建存储映射。后端只采纳用户可配置值，镜像、容器端口、挂载目标、环境变量和启动命令均重新从应用目录读取。接口通过 `taskd` 启动 `/usr/libexec/dockergo-install`，前端使用系统任务弹窗实时展示安装日志。taskd 实例名固定为 `dockergo`；已有安装任务运行时，重复请求会返回 `409 TASK_BUSY`。
+`install` 接收 `appId`、`hostPorts`、`volumePaths`、`autoStart` 和 `token`。`hostPorts` 与 `volumePaths` 是 JSON 字符串数组，数量和顺序必须与应用目录中的 `ports`、`volumes` 一致；存储路径可使用空字符串，表示不创建对应映射。后端只采纳用户可配置值，镜像、容器端口、挂载目标、环境变量和启动命令均重新从应用目录读取。接口通过 `taskd` 启动 `/usr/libexec/dockergo-install`，前端使用系统任务弹窗实时展示安装日志。taskd 实例名固定为 `dockergo`；已有安装任务运行时，重复请求会返回 `409 TASK_BUSY`。
 
 容器列表成功响应示例：
 

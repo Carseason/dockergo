@@ -3,11 +3,9 @@ import { installCatalogApp } from "../api/dockergo"
 import type { CatalogApp, InstallConfiguration } from "../types"
 
 function getDefaultConfiguration(app: CatalogApp): InstallConfiguration {
-  const port = app.ports.find((candidate) => candidate.web) || app.ports[0]
-
   return {
-    hostPort: port ? String(port.host) : "",
-    dataDirectory: "",
+    hostPorts: app.ports.map((port) => String(port.host)),
+    volumePaths: app.volumes.map(() => ""),
     autoStart: true,
   }
 }

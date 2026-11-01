@@ -135,8 +135,8 @@ export type DockerContainerRemoveResponse = {
 }
 
 export type InstallConfiguration = {
-  hostPort: string
-  dataDirectory: string
+  hostPorts: string[]
+  volumePaths: string[]
   autoStart: boolean
 }
 

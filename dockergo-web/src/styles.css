@@ -1731,6 +1731,11 @@ main {
   font-size: 11px;
 }
 
+.port-mappings {
+  display: grid;
+  gap: 12px;
+}
+
 .port-mapping {
   display: grid;
   grid-template-columns: 1fr auto 1fr auto;

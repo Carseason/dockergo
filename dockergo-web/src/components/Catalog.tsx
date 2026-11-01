@@ -130,8 +130,8 @@ export function Catalog({
       ) : (
         <div className="empty-state" role="status">
           <MagnifyingGlass size={28} />
-          <strong>没有找到相关应用</strong>
-          <span>尝试使用其他关键词或分类</span>
+          <strong>应用市场暂无可用应用</strong>
+          <span>请稍后刷新应用目录</span>
         </div>
       )}
     </section>

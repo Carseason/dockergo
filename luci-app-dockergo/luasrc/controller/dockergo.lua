@@ -84,12 +84,26 @@ local function valid_catalog(catalog)
 		if app.volumes ~= nil and type(app.volumes) ~= "table" then
 			return false, string.format("应用 %s 的存储配置无效", app.id)
 		end
+		local container_ports = {}
+		for _, port in ipairs(app.ports or {}) do
+			if type(port) ~= "table" or type(port.container) ~= "number" or
+				port.container % 1 ~= 0 or port.container < 1 or port.container > 65535 or
+				type(port.host) ~= "number" or port.host % 1 ~= 0 or
+				port.host < 1 or port.host > 65535 or type(port.web) ~= "boolean" or
+				container_ports[port.container] then
+				return false, string.format("应用 %s 的端口配置无效", app.id)
+			end
+			container_ports[port.container] = true
+		end
+		local container_volumes = {}
 		for _, volume in ipairs(app.volumes or {}) do
 			if type(volume) ~= "table" or type(volume.container) ~= "string" or
-				type(volume.host) ~= "string" or (volume.type ~= nil and
+				volume.container:sub(1, 1) ~= "/" or type(volume.host) ~= "string" or
+				container_volumes[volume.container] or (volume.type ~= nil and
 				volume.type ~= "directory" and volume.type ~= "file") then
 				return false, string.format("应用 %s 的存储配置无效", app.id)
 			end
+			container_volumes[volume.container] = true
 		end
 		if app.environment ~= nil and type(app.environment) ~= "table" then
 			return false, string.format("应用 %s 的环境变量配置无效", app.id)
@@ -240,7 +254,7 @@ local function valid_app_id(app_id)
 		#app_id <= 64
 end
 
-local function valid_data_directory(path)
+local function valid_volume_path(path)
 	if type(path) ~= "string" or #path > 240 or
 		path:find("..", 1, true) ~= nil or path:find("//", 1, true) ~= nil then
 		return false
@@ -250,6 +264,26 @@ local function valid_data_directory(path)
 	local mounted_data_path = path:match(
 		"^/mnt/[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._/-]*$") ~= nil
 	return app_data_path or mounted_data_path
+end
+
+local function form_string_array(name, expected_count)
+	local encoded = http.formvalue(name)
+	local values = encoded and jsonc.parse(encoded)
+
+	if type(values) ~= "table" then
+		return nil
+	end
+
+	if #values ~= expected_count then
+		return nil
+	end
+	for index = 1, expected_count do
+		if type(values[index]) ~= "string" then
+			return nil
+		end
+	end
+
+	return values
 end
 
 local function task_suffix()
@@ -283,40 +317,49 @@ function api_install_app()
 
 	local ports = app.ports or {}
 	local volumes = app.volumes or {}
-	if #ports > 1 or #volumes > 1 then
-		write_error(422, "INSTALL_CONFIG_UNSUPPORTED", "当前安装器仅支持一个端口和一个数据目录")
+	local requested_ports = form_string_array("hostPorts", #ports)
+	if not requested_ports then
+		write_error(400, "INVALID_PORTS", "端口配置数量与应用目录不一致")
 		return
 	end
 
-	local port = ports[1]
-	local host_port
-	if port then
-		host_port = tonumber(http.formvalue("hostPort"))
+	local task_ports = {}
+	local used_host_ports = {}
+	for index, port in ipairs(ports) do
+		local host_port = tonumber(requested_ports[index])
 		if not host_port or host_port % 1 ~= 0 or host_port < 1 or host_port > 65535 or
 			type(port.container) ~= "number" or port.container % 1 ~= 0 or
-			port.container < 1 or port.container > 65535 then
+			port.container < 1 or port.container > 65535 or used_host_ports[host_port] then
 			write_error(400, "INVALID_PORT", "端口配置无效")
 			return
 		end
+		used_host_ports[host_port] = true
+		task_ports[#task_ports + 1] = {
+			host = host_port,
+			container = port.container,
+		}
 	end
 
-	local data_directory
-	if volumes[1] then
-		if type(volumes[1].container) ~= "string" or volumes[1].container:sub(1, 1) ~= "/" or
-			(volumes[1].type ~= nil and volumes[1].type ~= "directory" and
-			volumes[1].type ~= "file") then
-			write_error(502, "CATALOG_INVALID", "应用存储映射配置无效")
-			return
-		end
+	local requested_volumes = form_string_array("volumePaths", #volumes)
+	if not requested_volumes then
+		write_error(400, "INVALID_VOLUMES", "存储映射数量与应用目录不一致")
+		return
+	end
 
-		local requested_directory = http.formvalue("dataDirectory") or ""
-		if requested_directory ~= "" then
-			if not valid_data_directory(requested_directory) then
-				write_error(400, "INVALID_DATA_DIRECTORY",
+	local task_volumes = {}
+	for index, volume in ipairs(volumes) do
+		local requested_path = requested_volumes[index]
+		if requested_path ~= "" then
+			if not valid_volume_path(requested_path) then
+				write_error(400, "INVALID_VOLUME_PATH",
 					"映射路径必须位于 /docker/apps/ 或 /mnt/<磁盘>/ 下")
 				return
 			end
-			data_directory = requested_directory
+			task_volumes[#task_volumes + 1] = {
+				host = requested_path,
+				container = volume.container,
+				type = volume.type or "directory",
+			}
 		end
 	end
 
@@ -348,21 +391,9 @@ function api_install_app()
 		autoStart = http.formvalue("autoStart") == "1",
 		environment = environment,
 		command = command,
+		ports = task_ports,
+		volumes = task_volumes,
 	}
-
-	if port then
-		task_config.port = {
-			host = host_port,
-			container = port.container,
-		}
-	end
-	if data_directory then
-		task_config.volume = {
-			host = data_directory,
-			container = volumes[1].container,
-			type = volumes[1].type or "directory",
-		}
-	end
 
 	local current_task = require("luci.model.tasks").status(INSTALL_TASK_ID)
 	if current_task.running then

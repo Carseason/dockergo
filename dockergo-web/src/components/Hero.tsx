@@ -13,7 +13,7 @@ export function Hero({ onBrowse }: HeroProps) {
           精选应用
         </span>
         <h2 id="hero-title">几分钟内，部署你的下一个服务</h2>
-        <p>经过验证的 Docker 应用，一键配置、自动更新，让服务部署更简单。</p>
+        <p>从应用目录配置 Docker 容器，并在同一页面集中管理。</p>
         <button type="button" onClick={onBrowse}>
           浏览全部应用 <ArrowRight size={17} weight="bold" />
         </button>
@@ -38,8 +38,8 @@ export function Hero({ onBrowse }: HeroProps) {
             <Clock size={15} />
           </span>
           <div>
-            <strong>自动更新</strong>
-            <span>已开启</span>
+            <strong>任务日志</strong>
+            <span>实时可见</span>
           </div>
         </div>
       </div>

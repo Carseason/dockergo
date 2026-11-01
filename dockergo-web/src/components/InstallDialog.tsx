@@ -28,25 +28,43 @@ export function InstallDialog({
   onClose,
 }: InstallDialogProps) {
   const titleRef = useRef<HTMLHeadingElement>(null)
-  const [directoryPickerOpen, setDirectoryPickerOpen] = useState(false)
-  const port = app.ports.find((candidate) => candidate.web) || app.ports[0]
-  const hasVolume = app.volumes.length > 0
-  const volumeType = app.volumes[0]?.type || "directory"
+  const [volumePickerIndex, setVolumePickerIndex] = useState<number | null>(
+    null,
+  )
   const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
-  const isValid = !port || configuration.hostPort.length > 0
+  const isValid =
+    configuration.hostPorts.length === app.ports.length &&
+    configuration.hostPorts.every((port) => port.length > 0) &&
+    configuration.volumePaths.length === app.volumes.length
+
+  const updateHostPort = (index: number, value: string) => {
+    onConfigurationChange({
+      hostPorts: configuration.hostPorts.map((port, portIndex) =>
+        portIndex === index ? value : port,
+      ),
+    })
+  }
+
+  const updateVolumePath = (index: number, value: string) => {
+    onConfigurationChange({
+      volumePaths: configuration.volumePaths.map((path, pathIndex) =>
+        pathIndex === index ? value : path,
+      ),
+    })
+  }
 
   useEffect(() => {
     titleRef.current?.focus()
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !submitting && !directoryPickerOpen) {
+      if (event.key === "Escape" && !submitting && volumePickerIndex === null) {
         onClose()
       }
     }
 
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [directoryPickerOpen, onClose, submitting])
+  }, [onClose, submitting, volumePickerIndex])
 
   return (
     <div
@@ -88,72 +106,86 @@ export function InstallDialog({
             onInstall()
           }}
         >
-          {port && (
+          {app.ports.length > 0 && (
             <fieldset className="form-group">
               <legend>端口映射</legend>
-              <div className="port-mapping">
-                <label className="port-mapping__field">
-                  <span>主机端口</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="65535"
-                    disabled={submitting}
-                    value={configuration.hostPort}
-                    onChange={(event) =>
-                      onConfigurationChange({ hostPort: event.target.value })
-                    }
-                  />
-                </label>
-                <strong aria-hidden="true">-&gt;</strong>
-                <div className="port-mapping__field port-mapping__fixed">
-                  <span>容器端口</span>
-                  <output aria-label={`容器端口 ${port.container}，系统固定`}>
-                    <b>{port.container}</b>
-                    <small>系统固定</small>
-                  </output>
-                </div>
-                <em>TCP</em>
+              <div className="port-mappings">
+                {app.ports.map((port, index) => (
+                  <div
+                    className="port-mapping"
+                    key={`${port.container}-${index}`}
+                  >
+                    <label className="port-mapping__field">
+                      <span>
+                        主机端口{app.ports.length > 1 ? ` ${index + 1}` : ""}
+                      </span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="65535"
+                        disabled={submitting}
+                        value={configuration.hostPorts[index] || ""}
+                        onChange={(event) =>
+                          updateHostPort(index, event.target.value)
+                        }
+                      />
+                    </label>
+                    <strong aria-hidden="true">-&gt;</strong>
+                    <div className="port-mapping__field port-mapping__fixed">
+                      <span>容器端口</span>
+                      <output
+                        aria-label={`容器端口 ${port.container}，系统固定`}
+                      >
+                        <b>{port.container}</b>
+                        <small>系统固定</small>
+                      </output>
+                    </div>
+                    <em>TCP</em>
+                  </div>
+                ))}
               </div>
             </fieldset>
           )}
 
-          {hasVolume && (
-            <div className="form-group">
-              <label htmlFor="data-directory">
-                映射{volumeType === "file" ? "文件" : "目录"}（可选）
-              </label>
-              <div className="directory-input">
-                <input
-                  id="data-directory"
-                  disabled={submitting}
-                  value={configuration.dataDirectory}
-                  onChange={(event) =>
-                    onConfigurationChange({
-                      dataDirectory: event.target.value,
-                    })
-                  }
-                  placeholder="请选择或输入映射路径"
-                  aria-describedby="data-directory-help"
-                />
-                <button
-                  type="button"
-                  className="directory-input__browse"
-                  disabled={submitting}
-                  aria-label={`选择映射${
-                    volumeType === "file" ? "文件" : "目录"
-                  }`}
-                  title={`选择映射${volumeType === "file" ? "文件" : "目录"}`}
-                  onClick={() => setDirectoryPickerOpen(true)}
-                >
-                  <FolderOpen size={18} weight="duotone" />
-                </button>
+          {app.volumes.map((volume, index) => {
+            const inputId = `volume-path-${index}`
+            const helpId = `${inputId}-help`
+            const label = volume.type === "file" ? "文件" : "目录"
+
+            return (
+              <div className="form-group" key={`${volume.container}-${index}`}>
+                <label htmlFor={inputId}>
+                  映射{label}
+                  {app.volumes.length > 1 ? ` ${index + 1}` : ""}（可选）
+                </label>
+                <div className="directory-input">
+                  <input
+                    id={inputId}
+                    disabled={submitting}
+                    value={configuration.volumePaths[index] || ""}
+                    onChange={(event) =>
+                      updateVolumePath(index, event.target.value)
+                    }
+                    placeholder={`请选择或输入映射${label}`}
+                    aria-describedby={helpId}
+                  />
+                  <button
+                    type="button"
+                    className="directory-input__browse"
+                    disabled={submitting}
+                    aria-label={`选择映射${label}`}
+                    title={`选择映射${label}`}
+                    onClick={() => setVolumePickerIndex(index)}
+                  >
+                    <FolderOpen size={18} weight="duotone" />
+                  </button>
+                </div>
+                <small id={helpId}>
+                  留空则不启用；容器内固定映射到 {volume.container}
+                </small>
               </div>
-              <small id="data-directory-help">
-                留空则不启用此映射，也可输入完整路径或从 /mnt 中选择
-              </small>
-            </div>
-          )}
+            )
+          })}
 
           <div className="install-options">
             <label>
@@ -178,8 +210,11 @@ export function InstallDialog({
               <strong>{app.image}</strong>
             </div>
             <div>
-              <span>预计耗时</span>
-              <strong>约 1 分钟</strong>
+              <span>映射配置</span>
+              <strong>
+                {app.ports.length} 个端口 ·{" "}
+                {configuration.volumePaths.filter(Boolean).length} 个存储
+              </strong>
             </div>
           </div>
 
@@ -198,15 +233,15 @@ export function InstallDialog({
         </form>
       </section>
 
-      {directoryPickerOpen && (
+      {volumePickerIndex !== null && app.volumes[volumePickerIndex] && (
         <DirectoryPickerDialog
-          initialPath={configuration.dataDirectory}
-          selectionType={volumeType}
+          initialPath={configuration.volumePaths[volumePickerIndex] || ""}
+          selectionType={app.volumes[volumePickerIndex].type}
           onSelect={(path) => {
-            onConfigurationChange({ dataDirectory: path })
-            setDirectoryPickerOpen(false)
+            updateVolumePath(volumePickerIndex, path)
+            setVolumePickerIndex(null)
           }}
-          onClose={() => setDirectoryPickerOpen(false)}
+          onClose={() => setVolumePickerIndex(null)}
           onError={onError}
         />
       )}

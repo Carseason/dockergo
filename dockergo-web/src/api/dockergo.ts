@@ -269,8 +269,8 @@ export function installCatalogApp(
     },
     body: new URLSearchParams({
       appId,
-      hostPort: configuration.hostPort,
-      dataDirectory: configuration.dataDirectory,
+      hostPorts: JSON.stringify(configuration.hostPorts),
+      volumePaths: JSON.stringify(configuration.volumePaths),
       autoStart: configuration.autoStart ? "1" : "0",
       token: csrfToken,
     }),
