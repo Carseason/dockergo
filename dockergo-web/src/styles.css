@@ -818,6 +818,13 @@ main {
   font-size: 15px;
 }
 
+.app-card__version {
+  flex: none;
+  color: #737f93;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
 .category-label {
   color: #737f93;
   font-size: 11px;

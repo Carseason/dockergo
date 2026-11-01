@@ -109,10 +109,12 @@ function normalizeCatalogVolume(value: unknown): CatalogVolume | null {
 function normalizeCatalogApp(value: unknown): CatalogApp | null {
   if (!isRecord(value)) return null
 
-  const { id, title, description, image } = value
+  const { id, title, version, description, image } = value
   if (
     typeof id !== "string" ||
     typeof title !== "string" ||
+    typeof version !== "string" ||
+    version.length === 0 ||
     typeof description !== "string" ||
     typeof image !== "string"
   ) {
@@ -151,6 +153,7 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
   return {
     id,
     title,
+    version,
     description,
     tags,
     image,

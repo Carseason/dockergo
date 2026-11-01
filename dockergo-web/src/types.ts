@@ -13,6 +13,7 @@ export type CatalogVolume = {
 export type CatalogApp = {
   id: string
   title: string
+  version: string
   description: string
   tags: string[]
   image: string

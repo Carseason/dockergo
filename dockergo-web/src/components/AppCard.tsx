@@ -19,6 +19,7 @@ export function AppCard({ app, onInstall }: AppCardProps) {
           <div className="app-card__identity">
             <div className="app-card__name">
               <strong>{app.title}</strong>
+              <span className="app-card__version">v{app.version}</span>
             </div>
           </div>
         </div>

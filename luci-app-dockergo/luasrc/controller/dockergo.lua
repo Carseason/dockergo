@@ -68,6 +68,7 @@ local function valid_catalog(catalog)
 	for index, app in ipairs(catalog.apps) do
 		if type(app) ~= "table" or type(app.id) ~= "string" or app.id == "" or
 			type(app.title) ~= "string" or app.title == "" or
+			type(app.version) ~= "string" or app.version == "" or
 			type(app.description) ~= "string" or type(app.image) ~= "string" or app.image == "" or
 			type(app.tags) ~= "table" then
 			return false, string.format("第 %d 个应用的数据结构无效", index)
