@@ -41,6 +41,10 @@ export type DockerContainer = {
   status: string
   networks: string
   mounts: string
+  managed: boolean
+  appId: string
+  appVersion: string
+  instanceId: string
 }
 
 export type DockerApiError = {

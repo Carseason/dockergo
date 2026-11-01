@@ -25,9 +25,17 @@ os.remove(config_path)
 
 local config = jsonc.parse(contents)
 if type(config) ~= "table" or type(config.appId) ~= "string" or
-	type(config.title) ~= "string" or type(config.image) ~= "string" or
+	type(config.title) ~= "string" or type(config.version) ~= "string" or
+	type(config.instanceId) ~= "string" or type(config.image) ~= "string" or
 	type(config.containerName) ~= "string" then
 	print("[错误] 安装任务配置无效")
+	os.exit(2)
+end
+if #config.appId > 64 or config.appId:match("^[a-z0-9][a-z0-9._-]*$") == nil or
+	#config.version > 64 or config.version:match("^[A-Za-z0-9][A-Za-z0-9._-]*$") == nil or
+	#config.instanceId ~= 8 or config.instanceId:match("^[a-f0-9][a-f0-9]*$") == nil or
+	config.containerName ~= "dgo_" .. config.appId .. "_" .. config.version .. "_" .. config.instanceId then
+	print("[错误] 安装任务标识无效")
 	os.exit(2)
 end
 
@@ -128,7 +136,10 @@ end
 local create = {
 	"/usr/bin/docker", "container", "create",
 	"--name", config.containerName,
+	"--label", "io.dockergo.managed=true",
 	"--label", "io.dockergo.app-id=" .. config.appId,
+	"--label", "io.dockergo.app-version=" .. config.version,
+	"--label", "io.dockergo.instance-id=" .. config.instanceId,
 	"--network", "dockergo_default",
 	"--restart", config.autoStart and "unless-stopped" or "no",
 }

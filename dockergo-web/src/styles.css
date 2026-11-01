@@ -473,6 +473,14 @@ main {
   font-size: 15px;
 }
 
+.container-card__version {
+  flex: none;
+  margin-right: 8px;
+  color: #737f93;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
 .container-card__id {
   margin-top: 12px;
   color: #687489;

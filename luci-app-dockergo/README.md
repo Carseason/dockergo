@@ -28,6 +28,11 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 应用仅在声明布尔字段 `autoStart` 时向用户显示自动启动选项，字段值作为默认选择；
 未声明该字段的应用不会显示该选项，后端也会强制关闭 Docker 重启策略。
 
+通过应用市场创建的容器使用 `dgo_<应用 ID>_<版本>_<实例 ID>` 命名，并携带
+`io.dockergo.managed`、`io.dockergo.app-id`、`io.dockergo.app-version` 和
+`io.dockergo.instance-id` 标签。容器列表接口返回这些结构化元数据，前端通过应用 ID
+关联目录信息；实例 ID 保证同一应用和版本可以创建多个容器。
+
 `control` 接收 `application/x-www-form-urlencoded` 参数：
 
 - `id`：12 至 64 位十六进制容器 ID。
@@ -54,7 +59,11 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
       "state": "running",
       "status": "Up 2 hours",
       "networks": "bridge",
-      "mounts": "redis-data"
+      "mounts": "redis-data",
+      "managed": true,
+      "appId": "redis",
+      "appVersion": "7.4.1",
+      "instanceId": "a1b2c3d4"
     }
   ],
   "generatedAt": 1793500000

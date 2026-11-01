@@ -68,7 +68,8 @@ local function valid_catalog(catalog)
 	for index, app in ipairs(catalog.apps) do
 		if type(app) ~= "table" or type(app.id) ~= "string" or app.id == "" or
 			type(app.title) ~= "string" or app.title == "" or
-			type(app.version) ~= "string" or app.version == "" or
+			type(app.version) ~= "string" or #app.version > 64 or
+			app.version:match("^[A-Za-z0-9][A-Za-z0-9._-]*$") == nil or
 			type(app.description) ~= "string" or type(app.image) ~= "string" or app.image == "" or
 			type(app.tags) ~= "table" then
 			return false, string.format("第 %d 个应用的数据结构无效", index)
@@ -390,8 +391,10 @@ function api_install_app()
 	local task_config = {
 		appId = app.id,
 		title = app.title,
+		version = app.version,
 		image = app.image,
-		containerName = app.id .. "-" .. suffix,
+		instanceId = suffix,
+		containerName = "dgo_" .. app.id .. "_" .. app.version .. "_" .. suffix,
 		autoStart = type(app.autoStart) == "boolean" and http.formvalue("autoStart") == "1",
 		environment = environment,
 		command = command,
@@ -440,7 +443,18 @@ function api_install_app()
 	})
 end
 
+local function container_label(labels, key)
+	for label in labels:gmatch("[^,]+") do
+		local name, value = label:match("^([^=]+)=(.*)$")
+		if name == key then
+			return value
+		end
+	end
+	return ""
+end
+
 local function normalize_container(raw)
+	local labels = string_value(raw.Labels)
 	return {
 		id = string_value(raw.ID),
 		name = string_value(raw.Names),
@@ -453,6 +467,10 @@ local function normalize_container(raw)
 		status = string_value(raw.Status),
 		networks = string_value(raw.Networks),
 		mounts = string_value(raw.Mounts),
+		managed = container_label(labels, "io.dockergo.managed") == "true",
+		appId = container_label(labels, "io.dockergo.app-id"),
+		appVersion = container_label(labels, "io.dockergo.app-version"),
+		instanceId = container_label(labels, "io.dockergo.instance-id"),
 	}
 end
 

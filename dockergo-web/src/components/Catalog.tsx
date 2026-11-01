@@ -100,6 +100,7 @@ export function Catalog({
               <ContainerCard
                 key={container.id}
                 container={container}
+                catalogApp={apps.find((app) => app.id === container.appId)}
                 pending={pendingContainerId === container.id}
                 onControl={onControlContainer}
                 onInspect={onInspectContainer}

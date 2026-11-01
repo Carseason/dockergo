@@ -10,7 +10,11 @@ import {
   Trash,
 } from "@phosphor-icons/react"
 import { useEffect, useRef, useState } from "react"
-import type { DockerContainer, DockerContainerAction } from "../types"
+import type {
+  CatalogApp,
+  DockerContainer,
+  DockerContainerAction,
+} from "../types"
 
 function getStateLabel(state: string) {
   const labels: Record<string, string> = {
@@ -85,6 +89,7 @@ function getContainerAction(
 
 type ContainerCardProps = {
   container: DockerContainer
+  catalogApp?: CatalogApp
   pending: boolean
   onControl: (id: string, action: DockerContainerAction) => void
   onInspect: (container: DockerContainer) => void
@@ -94,6 +99,7 @@ type ContainerCardProps = {
 
 export function ContainerCard({
   container,
+  catalogApp,
   pending,
   onControl,
   onInspect,
@@ -141,8 +147,13 @@ export function ContainerCard({
         <div className="container-card__heading">
           <div>
             <strong title={container.name}>
-              {container.name || container.id.slice(0, 12)}
+              {catalogApp?.title || container.name || container.id.slice(0, 12)}
             </strong>
+            {container.appVersion && (
+              <span className="container-card__version">
+                v{container.appVersion}
+              </span>
+            )}
             <span className={`container-state container-state--${state}`}>
               <i aria-hidden="true" />
               {getStateLabel(container.state)}
