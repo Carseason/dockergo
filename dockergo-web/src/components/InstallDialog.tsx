@@ -5,8 +5,8 @@ import {
   X,
 } from "@phosphor-icons/react"
 import { useEffect, useRef, useState } from "react"
-import { selectSystemDirectory } from "../systemDirectoryPicker"
 import type { CatalogApp, InstallConfiguration } from "../types"
+import { DirectoryPickerDialog } from "./DirectoryPickerDialog"
 
 type InstallDialogProps = {
   app: CatalogApp
@@ -28,7 +28,7 @@ export function InstallDialog({
   onClose,
 }: InstallDialogProps) {
   const titleRef = useRef<HTMLHeadingElement>(null)
-  const [selectingDirectory, setSelectingDirectory] = useState(false)
+  const [directoryPickerOpen, setDirectoryPickerOpen] = useState(false)
   const port = app.ports.find((candidate) => candidate.web) || app.ports[0]
   const hasVolume = app.volumes.length > 0
   const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
@@ -40,25 +40,14 @@ export function InstallDialog({
     titleRef.current?.focus()
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !submitting) onClose()
+      if (event.key === "Escape" && !submitting && !directoryPickerOpen) {
+        onClose()
+      }
     }
 
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [onClose, submitting])
-
-  const chooseDirectory = async () => {
-    setSelectingDirectory(true)
-
-    try {
-      const selected = await selectSystemDirectory(configuration.dataDirectory)
-      if (selected) onConfigurationChange({ dataDirectory: selected })
-    } catch (error) {
-      onError(error instanceof Error ? error.message : "无法打开系统目录选择器")
-    } finally {
-      setSelectingDirectory(false)
-    }
-  }
+  }, [directoryPickerOpen, onClose, submitting])
 
   return (
     <div
@@ -150,10 +139,10 @@ export function InstallDialog({
                 <button
                   type="button"
                   className="directory-input__browse"
-                  disabled={submitting || selectingDirectory}
+                  disabled={submitting}
                   aria-label="选择映射目录"
                   title="选择映射目录"
-                  onClick={() => void chooseDirectory()}
+                  onClick={() => setDirectoryPickerOpen(true)}
                 >
                   <FolderOpen size={18} weight="duotone" />
                 </button>
@@ -206,6 +195,18 @@ export function InstallDialog({
           </button>
         </form>
       </section>
+
+      {directoryPickerOpen && (
+        <DirectoryPickerDialog
+          initialPath={configuration.dataDirectory}
+          onSelect={(path) => {
+            onConfigurationChange({ dataDirectory: path })
+            setDirectoryPickerOpen(false)
+          }}
+          onClose={() => setDirectoryPickerOpen(false)}
+          onError={onError}
+        />
+      )}
     </div>
   )
 }

@@ -145,3 +145,16 @@ export type DockerInstallResponse = {
   containerName: string
   error?: DockerApiError
 }
+
+export type DockerDirectory = {
+  name: string
+  path: string
+}
+
+export type DockerDirectoryListResponse = {
+  success: boolean
+  path: string
+  parent?: string
+  directories: DockerDirectory[]
+  error?: DockerApiError
+}

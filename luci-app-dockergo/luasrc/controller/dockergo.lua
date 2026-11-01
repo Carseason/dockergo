@@ -3,6 +3,7 @@ module("luci.controller.dockergo", package.seeall)
 local http = require "luci.http"
 local jsonc = require "luci.jsonc"
 local sys = require "luci.sys"
+local fs = require "nixio.fs"
 
 local LIST_COMMAND = "/usr/bin/docker container ls --all --no-trunc --format '{{json .}}'"
 local EXIT_MARKER = "__DOCKERGO_EXIT__"
@@ -14,12 +15,48 @@ local INSTALL_RUNNER = "/usr/libexec/dockergo-install"
 
 function index()
 	entry({"admin", "services", "dockergo", "api", "catalog"}, call("api_catalog")).leaf = true
+	entry({"admin", "services", "dockergo", "api", "directories"}, call("api_list_directories")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "install"}, post("api_install_app")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "containers"}, call("api_list_containers")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "inspect"}, call("api_inspect_container")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "logs"}, call("api_container_logs")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "control"}, post("api_control_container")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "remove"}, post("api_remove_container")).leaf = true
+end
+
+local function valid_directory_path(path)
+	if path == "/mnt" then
+		return true
+	end
+
+	if type(path) ~= "string" or #path > 240 or path:sub(1, 5) ~= "/mnt/" or
+		path:sub(-1) == "/" or path:find("//", 1, true) ~= nil then
+		return false
+	end
+
+	for segment in path:sub(6):gmatch("[^/]+") do
+		if segment:match("^[A-Za-z0-9][A-Za-z0-9._-]*$") == nil then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function directory_exists_without_links(path)
+	if fs.lstat("/mnt", "type") ~= "dir" then
+		return false
+	end
+
+	local current = "/mnt"
+	for segment in path:sub(6):gmatch("[^/]+") do
+		current = current .. "/" .. segment
+		if fs.lstat(current, "type") ~= "dir" then
+			return false
+		end
+	end
+
+	return true
 end
 
 local function valid_catalog(catalog)
@@ -125,6 +162,57 @@ function api_catalog()
 	end
 
 	write_json(200, catalog)
+end
+
+function api_list_directories()
+	local path = http.formvalue("path") or "/mnt"
+	if not valid_directory_path(path) then
+		write_error(400, "INVALID_DIRECTORY_PATH", "只能浏览 /mnt 下的目录")
+		return
+	end
+
+	if not directory_exists_without_links(path) then
+		write_error(404, "DIRECTORY_NOT_FOUND", "目录不存在或不可访问")
+		return
+	end
+
+	local iterator = fs.dir(path)
+	if not iterator then
+		write_error(403, "DIRECTORY_UNREADABLE", "无法读取该目录")
+		return
+	end
+
+	local directories = {}
+	for name in iterator do
+		if name:match("^[A-Za-z0-9][A-Za-z0-9._-]*$") then
+			local child_path = path .. "/" .. name
+			if fs.lstat(child_path, "type") == "dir" then
+				directories[#directories + 1] = {
+					name = name,
+					path = child_path,
+				}
+			end
+		end
+	end
+
+	table.sort(directories, function(left, right)
+		return left.name:lower() < right.name:lower()
+	end)
+
+	local parent
+	if path ~= "/mnt" then
+		parent = path:match("^(.*)/[^/]+$") or "/mnt"
+		if parent:sub(1, 4) ~= "/mnt" then
+			parent = "/mnt"
+		end
+	end
+
+	write_json(200, {
+		success = true,
+		path = path,
+		parent = parent,
+		directories = directories,
+	})
 end
 
 local function find_catalog_app(catalog, app_id)

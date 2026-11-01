@@ -944,11 +944,224 @@ main {
 .install-dialog,
 .container-details-dialog,
 .container-logs-dialog,
-.remove-container-dialog {
+.remove-container-dialog,
+.directory-picker-dialog {
   position: fixed;
   top: 50%;
   left: 50%;
   translate: -50% -50%;
+}
+
+.directory-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  padding: 20px;
+  background: rgb(11 18 32 / 76%);
+  backdrop-filter: blur(6px);
+  animation: fade-in 160ms ease;
+}
+
+.directory-picker-dialog {
+  width: min(620px, calc(100vw - 40px));
+  max-height: calc(100dvh - 40px);
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 30px 80px rgb(5 13 29 / 38%);
+  animation: modal-in 200ms ease;
+}
+
+.directory-picker__header {
+  min-width: 0;
+  padding: 24px 68px 18px 26px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.directory-picker__icon {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 11px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+}
+
+.directory-picker__header > div {
+  min-width: 0;
+}
+
+.directory-picker__header span:not(.directory-picker__icon) {
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.6px;
+}
+
+.directory-picker__header h2 {
+  margin: 2px 0 0;
+  color: var(--navy);
+  font-size: 19px;
+}
+
+.directory-picker__breadcrumbs {
+  min-height: 44px;
+  padding: 8px 24px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+  background: #f8f9fc;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.directory-picker__breadcrumbs > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #929bad;
+}
+
+.directory-picker__breadcrumbs button {
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #526078;
+  font-size: 12px;
+}
+
+.directory-picker__breadcrumbs button:hover:not(:disabled) {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.directory-picker__breadcrumbs button:disabled {
+  color: var(--navy);
+  font-weight: 750;
+}
+
+.directory-picker__toolbar {
+  padding: 12px 24px;
+  display: flex;
+  gap: 8px;
+}
+
+.directory-picker__toolbar button,
+.directory-picker__footer button:not(.primary-button) {
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid #d9dfe9;
+  border-radius: 7px;
+  background: #fff;
+  color: #536078;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.directory-picker__toolbar button:hover:not(:disabled),
+.directory-picker__footer button:not(.primary-button):hover {
+  border-color: #b9c7e3;
+  background: #f3f6fc;
+  color: #2f58b4;
+}
+
+.directory-picker__toolbar button:disabled {
+  opacity: 0.45;
+}
+
+.directory-picker__list {
+  height: min(320px, calc(100dvh - 310px));
+  min-height: 180px;
+  margin: 0 24px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fafbfc;
+}
+
+.directory-picker__item {
+  width: 100%;
+  min-height: 48px;
+  padding: 9px 13px;
+  border: 0;
+  border-bottom: 1px solid #e8ebf0;
+  background: transparent;
+  color: #526078;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.directory-picker__item:last-child {
+  border-bottom: 0;
+}
+
+.directory-picker__item:hover {
+  background: #eef4ff;
+  color: var(--blue);
+}
+
+.directory-picker__item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.directory-picker__status {
+  min-height: 100%;
+  color: #8490a3;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 9px;
+  font-size: 12px;
+}
+
+.directory-picker__footer {
+  padding: 16px 24px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.directory-picker__footer code {
+  min-width: 0;
+  overflow: hidden;
+  color: #66738a;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+}
+
+.directory-picker__footer > div {
+  flex: none;
+  display: flex;
+  gap: 8px;
+}
+
+.directory-picker__footer .primary-button {
+  width: auto;
+  min-height: 36px;
+  padding: 7px 13px;
+  font-size: 12px;
+  box-shadow: none;
 }
 
 .install-dialog {
@@ -1949,6 +2162,37 @@ main {
   .remove-container-dialog {
     width: min(440px, calc(100vw - 20px));
     padding: 28px 20px 22px;
+  }
+
+  .directory-picker-dialog {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+  }
+
+  .directory-picker__header {
+    padding: 20px 60px 15px 18px;
+  }
+
+  .directory-picker__breadcrumbs,
+  .directory-picker__toolbar {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .directory-picker__list {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+
+  .directory-picker__footer {
+    padding: 14px 16px 18px;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .directory-picker__footer > div {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
   }
 
   .details-grid {

@@ -10,6 +10,7 @@ import type {
   DockerContainerListResponse,
   DockerContainerLogsResponse,
   DockerContainerRemoveResponse,
+  DockerDirectoryListResponse,
   DockerInstallResponse,
   InstallConfiguration,
 } from "../types"
@@ -168,6 +169,14 @@ export async function listCatalogApps(): Promise<CatalogResponse> {
 
 export function listDockerContainers(): Promise<DockerContainerListResponse> {
   return requestJson<DockerContainerListResponse>("containers")
+}
+
+export function listDockerDirectories(
+  path: string,
+): Promise<DockerDirectoryListResponse> {
+  return requestJson<DockerDirectoryListResponse>(
+    `directories?path=${encodeURIComponent(path)}`,
+  )
 }
 
 export function controlDockerContainer(

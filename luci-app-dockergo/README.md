@@ -9,6 +9,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | `GET` | `/catalog` | 获取 `/usr/share/dockergo/catalog.json` 中的应用目录 |
+| `GET` | `/directories?path=/mnt/...` | 浏览 `/mnt` 下可用的映射目录 |
 | `POST` | `/install` | 创建应用安装系统任务并返回任务 ID |
 | `GET` | `/containers` | 获取全部 Docker 容器 |
 | `GET` | `/inspect?id=<容器 ID>` | 获取指定容器详情 |

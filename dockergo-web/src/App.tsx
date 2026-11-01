@@ -65,6 +65,10 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
     (message: string) => showToast("error", "无法获取应用市场", message),
     [showToast],
   )
+  const handleDirectoryError = useCallback(
+    (message: string) => showToast("error", "无法选择映射目录", message),
+    [showToast],
+  )
   const closeDetails = useCallback(() => setDetailsContainer(null), [])
   const closeLogs = useCallback(() => setLogsContainer(null), [])
   const closeRemove = useCallback(() => setRemoveContainer(null), [])
@@ -136,7 +140,7 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
           configuration={installer.configuration}
           submitting={installer.submitting}
           onConfigurationChange={installer.updateConfiguration}
-          onError={(message) => showToast("error", "无法选择映射目录", message)}
+          onError={handleDirectoryError}
           onInstall={() => void confirmInstallation()}
           onClose={installer.closeInstaller}
         />
