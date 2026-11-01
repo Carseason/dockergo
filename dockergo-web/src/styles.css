@@ -1827,17 +1827,11 @@ main {
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
-.directory-input > span {
-  padding-left: 11px;
-  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 13px;
-}
-
 .directory-input input {
   min-width: 0;
   flex: 1;
   height: 100%;
-  padding: 0 10px 0 2px;
+  padding: 0 10px;
   border: 0;
   background: transparent;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;

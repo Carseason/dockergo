@@ -33,9 +33,7 @@ export function InstallDialog({
   const hasVolume = app.volumes.length > 0
   const volumeType = app.volumes[0]?.type || "directory"
   const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
-  const isValid =
-    (!port || configuration.hostPort.length > 0) &&
-    (!hasVolume || configuration.dataDirectory.length > 0)
+  const isValid = !port || configuration.hostPort.length > 0
 
   useEffect(() => {
     titleRef.current?.focus()
@@ -123,17 +121,16 @@ export function InstallDialog({
           {hasVolume && (
             <div className="form-group">
               <label htmlFor="data-directory">
-                映射{volumeType === "file" ? "文件" : "目录"}
+                映射{volumeType === "file" ? "文件" : "目录"}（可选）
               </label>
               <div className="directory-input">
-                <span aria-hidden="true">/</span>
                 <input
                   id="data-directory"
                   disabled={submitting}
-                  value={configuration.dataDirectory.replace(/^\//, "")}
+                  value={configuration.dataDirectory}
                   onChange={(event) =>
                     onConfigurationChange({
-                      dataDirectory: `/${event.target.value.replace(/^\/+/, "")}`,
+                      dataDirectory: event.target.value,
                     })
                   }
                   placeholder="请选择或输入映射路径"
@@ -153,7 +150,7 @@ export function InstallDialog({
                 </button>
               </div>
               <small id="data-directory-help">
-                可手动输入，或从设备的 /mnt 存储中选择
+                留空则不启用此映射，也可输入完整路径或从 /mnt 中选择
               </small>
             </div>
           )}

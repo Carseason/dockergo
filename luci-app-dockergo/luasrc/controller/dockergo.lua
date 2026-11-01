@@ -302,13 +302,21 @@ function api_install_app()
 
 	local data_directory
 	if volumes[1] then
-		data_directory = http.formvalue("dataDirectory")
-		if not valid_data_directory(data_directory) or
-			type(volumes[1].container) ~= "string" or volumes[1].container:sub(1, 1) ~= "/" or
+		if type(volumes[1].container) ~= "string" or volumes[1].container:sub(1, 1) ~= "/" or
 			(volumes[1].type ~= nil and volumes[1].type ~= "directory" and
 			volumes[1].type ~= "file") then
-			write_error(400, "INVALID_DATA_DIRECTORY", "数据目录必须位于 /docker/apps/ 或 /mnt/<磁盘>/ 下")
+			write_error(502, "CATALOG_INVALID", "应用存储映射配置无效")
 			return
+		end
+
+		local requested_directory = http.formvalue("dataDirectory") or ""
+		if requested_directory ~= "" then
+			if not valid_data_directory(requested_directory) then
+				write_error(400, "INVALID_DATA_DIRECTORY",
+					"映射路径必须位于 /docker/apps/ 或 /mnt/<磁盘>/ 下")
+				return
+			end
+			data_directory = requested_directory
 		end
 	end
 
@@ -348,7 +356,7 @@ function api_install_app()
 			container = port.container,
 		}
 	end
-	if volumes[1] then
+	if data_directory then
 		task_config.volume = {
 			host = data_directory,
 			container = volumes[1].container,
