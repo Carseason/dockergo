@@ -34,7 +34,9 @@ export function AppCard({ app, onInstall }: AppCardProps) {
         <p className="app-card__image" title={app.image}>
           {app.image}
         </p>
-        <p className="app-card__description">{app.description}</p>
+        <p className="app-card__description" title={app.description}>
+          {app.description}
+        </p>
         <p className="app-card__stats">
           <span>
             <strong>{app.volumes.length}</strong> 个存储

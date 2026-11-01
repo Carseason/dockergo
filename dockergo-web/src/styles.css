@@ -448,6 +448,8 @@ main {
 .container-card__body {
   min-width: 0;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .container-card__heading {
@@ -611,22 +613,32 @@ main {
 }
 
 .container-card__image {
+  min-height: 2.9em;
+  max-height: 2.9em;
   margin: 5px 0 0;
+  overflow: hidden;
   overflow-wrap: anywhere;
   color: #3d4a61;
+  display: -webkit-box;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
   font-size: 12px;
   line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .container-card__status {
-  min-height: 0 !important;
+  min-height: 1.45em !important;
   margin: 5px 0 12px !important;
+  overflow: hidden;
   color: #657186 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 12px !important;
 }
 
 .container-card__footer {
+  margin-top: auto;
   padding-top: 10px;
   border-top: 1px solid #edf0f5;
   color: #737f93;
@@ -837,12 +849,16 @@ main {
 }
 
 .app-card__description {
-  min-height: 40px;
+  height: 4.65em;
   margin: 8px 0 0;
+  overflow: hidden;
   color: #5f6b80;
+  display: -webkit-box;
   font-size: 13px;
   line-height: 1.55;
   text-wrap: pretty;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .app-card__stats {
