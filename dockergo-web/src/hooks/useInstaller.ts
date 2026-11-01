@@ -4,11 +4,10 @@ import type { CatalogApp, InstallConfiguration } from "../types"
 
 function getDefaultConfiguration(app: CatalogApp): InstallConfiguration {
   const port = app.ports.find((candidate) => candidate.web) || app.ports[0]
-  const volume = app.volumes[0]
 
   return {
     hostPort: port ? String(port.host) : "",
-    dataDirectory: volume ? `/docker/apps/${app.id}/${volume.host}` : "",
+    dataDirectory: "",
     autoStart: true,
   }
 }

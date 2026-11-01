@@ -136,7 +136,7 @@ export function InstallDialog({
                       dataDirectory: `/${event.target.value.replace(/^\/+/, "")}`,
                     })
                   }
-                  placeholder="docker/apps/app-name"
+                  placeholder="请选择或输入映射路径"
                   aria-describedby="data-directory-help"
                 />
                 <button
