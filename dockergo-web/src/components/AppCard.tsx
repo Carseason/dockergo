@@ -8,7 +8,6 @@ type AppCardProps = {
 
 export function AppCard({ app, onInstall }: AppCardProps) {
   const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
-  const environmentCount = Object.keys(app.environment).length
 
   return (
     <article className="app-card">
@@ -37,15 +36,11 @@ export function AppCard({ app, onInstall }: AppCardProps) {
         <p className="app-card__description" title={app.description}>
           {app.description}
         </p>
-        <p className="app-card__stats">
-          <span>
-            <strong>{app.volumes.length}</strong> 个存储
-          </span>
-          <span>
-            <strong>{environmentCount}</strong> 个变量
-          </span>
-          {app.command.length > 0 && <span>自定义命令</span>}
-        </p>
+        {app.command.length > 0 && (
+          <p className="app-card__stats">
+            <span>自定义命令</span>
+          </p>
+        )}
         <div className="app-card__footer">
           <button
             type="button"

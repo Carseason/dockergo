@@ -203,13 +203,6 @@ export function InstallDialog({
               <span>容器镜像</span>
               <strong>{app.image}</strong>
             </div>
-            <div>
-              <span>映射配置</span>
-              <strong>
-                {app.ports.length} 个端口 ·{" "}
-                {configuration.volumes.filter(Boolean).length} 个存储
-              </strong>
-            </div>
           </div>
 
           <button
