@@ -72,38 +72,38 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function normalizeCatalogPort(value: unknown): CatalogPort | null {
   if (!isRecord(value)) return null
 
-  const container = value.container
-  const host = value.host
-  const web = value.web
+  const port = value.port
+  const target = value.target
+  const desc = value.desc
 
   if (
-    !Number.isInteger(container) ||
-    !Number.isInteger(host) ||
-    typeof web !== "boolean"
+    !Number.isInteger(port) ||
+    !Number.isInteger(target) ||
+    typeof desc !== "string" ||
+    desc.length === 0
   ) {
     return null
   }
 
-  return { container: container as number, host: host as number, web }
+  return { port: port as number, target: target as number, desc }
 }
 
 function normalizeCatalogVolume(value: unknown): CatalogVolume | null {
   if (!isRecord(value)) return null
 
-  const container = value.container
-  const host = value.host
-  const type = value.type === "file" ? "file" : "directory"
+  const target = value.target
+  const type = value.type
+  const desc = value.desc
   if (
-    typeof container !== "string" ||
-    typeof host !== "string" ||
-    (value.type !== undefined &&
-      value.type !== "directory" &&
-      value.type !== "file")
+    typeof target !== "string" ||
+    (type !== "dir" && type !== "file") ||
+    typeof desc !== "string" ||
+    desc.length === 0
   ) {
     return null
   }
 
-  return { container, host, type }
+  return { target, type, desc }
 }
 
 function normalizeCatalogApp(value: unknown): CatalogApp | null {
@@ -274,8 +274,8 @@ export function installCatalogApp(
     },
     body: new URLSearchParams({
       appId,
-      hostPorts: JSON.stringify(configuration.hostPorts),
-      volumePaths: JSON.stringify(configuration.volumePaths),
+      ports: JSON.stringify(configuration.ports),
+      volumes: JSON.stringify(configuration.volumes),
       autoStart: configuration.autoStart ? "1" : "0",
       token: csrfToken,
     }),

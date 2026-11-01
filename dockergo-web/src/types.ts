@@ -1,13 +1,13 @@
 export type CatalogPort = {
-  container: number
-  host: number
-  web: boolean
+  port: number
+  target: number
+  desc: string
 }
 
 export type CatalogVolume = {
-  container: string
-  host: string
-  type: "directory" | "file"
+  target: string
+  type: "dir" | "file"
+  desc: string
 }
 
 export type CatalogApp = {
@@ -136,8 +136,8 @@ export type DockerContainerRemoveResponse = {
 }
 
 export type InstallConfiguration = {
-  hostPorts: string[]
-  volumePaths: string[]
+  ports: string[]
+  volumes: string[]
   autoStart: boolean
 }
 

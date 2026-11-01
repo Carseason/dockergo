@@ -21,8 +21,9 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 应用 ID 唯一且核心字段完整的目录文件；缺失、过大或无法解析的目录会返回明确的 JSON 错误。
 仓库中的 `datas/catalog.yaml` 是可编辑目录，`datas/catalog.json` 是对应的 JSON 数据；
 插件携带的 `/usr/share/dockergo/catalog.json` 与生成结果保持一致，并由 `/catalog` 接口直接读取。
-存储项可通过 `volumes[].type` 声明为 `directory` 或 `file`，省略时默认为
-`directory`。文件类型会将宿主机文件直接映射到容器内的 `container` 路径。
+端口项使用 `port` 表示默认宿主机端口、`target` 表示容器端口，并通过 `desc`
+向用户说明用途。存储项使用 `target` 表示容器路径，`type` 必须为 `dir` 或
+`file`，`desc` 用于说明映射用途；宿主机路径由用户安装时提供，不存入应用目录。
 应用仅在声明布尔字段 `autoStart` 时向用户显示自动启动选项，字段值作为默认选择；
 未声明该字段的应用不会显示该选项，后端也会强制关闭 Docker 重启策略。
 
@@ -34,7 +35,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 
 `remove` 接收同样格式的 `id` 和 `token` 参数。该操作只删除容器，保留镜像和数据卷。
 
-`install` 接收 `appId`、`hostPorts`、`volumePaths`、`autoStart` 和 `token`。`hostPorts` 与 `volumePaths` 是 JSON 字符串数组，数量和顺序必须与应用目录中的 `ports`、`volumes` 一致；存储路径可使用空字符串，表示不创建对应映射。后端只采纳用户可配置值，镜像、容器端口、挂载目标、环境变量和启动命令均重新从应用目录读取。接口通过 `taskd` 启动 `/usr/libexec/dockergo-install`，前端使用系统任务弹窗实时展示安装日志。taskd 实例名固定为 `dockergo`；已有安装任务运行时，重复请求会返回 `409 TASK_BUSY`。
+`install` 接收 `appId`、`ports`、`volumes`、`autoStart` 和 `token`。`ports` 与 `volumes` 是 JSON 字符串数组，数量和顺序必须与应用目录中的同名数组一致；存储路径可使用空字符串，表示不创建对应映射。后端只采纳用户可配置值，镜像、容器端口、挂载目标、环境变量和启动命令均重新从应用目录读取。接口通过 `taskd` 启动 `/usr/libexec/dockergo-install`，前端使用系统任务弹窗实时展示安装日志。taskd 实例名固定为 `dockergo`；已有安装任务运行时，重复请求会返回 `409 TASK_BUSY`。
 
 容器列表成功响应示例：
 

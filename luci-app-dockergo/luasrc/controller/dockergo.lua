@@ -84,26 +84,26 @@ local function valid_catalog(catalog)
 		if app.volumes ~= nil and type(app.volumes) ~= "table" then
 			return false, string.format("应用 %s 的存储配置无效", app.id)
 		end
-		local container_ports = {}
+		local port_targets = {}
 		for _, port in ipairs(app.ports or {}) do
-			if type(port) ~= "table" or type(port.container) ~= "number" or
-				port.container % 1 ~= 0 or port.container < 1 or port.container > 65535 or
-				type(port.host) ~= "number" or port.host % 1 ~= 0 or
-				port.host < 1 or port.host > 65535 or type(port.web) ~= "boolean" or
-				container_ports[port.container] then
+			if type(port) ~= "table" or type(port.target) ~= "number" or
+				port.target % 1 ~= 0 or port.target < 1 or port.target > 65535 or
+				type(port.port) ~= "number" or port.port % 1 ~= 0 or
+				port.port < 1 or port.port > 65535 or type(port.desc) ~= "string" or
+				port.desc == "" or port_targets[port.target] then
 				return false, string.format("应用 %s 的端口配置无效", app.id)
 			end
-			container_ports[port.container] = true
+			port_targets[port.target] = true
 		end
-		local container_volumes = {}
+		local volume_targets = {}
 		for _, volume in ipairs(app.volumes or {}) do
-			if type(volume) ~= "table" or type(volume.container) ~= "string" or
-				volume.container:sub(1, 1) ~= "/" or type(volume.host) ~= "string" or
-				container_volumes[volume.container] or (volume.type ~= nil and
-				volume.type ~= "directory" and volume.type ~= "file") then
+			if type(volume) ~= "table" or type(volume.target) ~= "string" or
+				volume.target:sub(1, 1) ~= "/" or type(volume.desc) ~= "string" or
+				volume.desc == "" or volume_targets[volume.target] or
+				(volume.type ~= "dir" and volume.type ~= "file") then
 				return false, string.format("应用 %s 的存储配置无效", app.id)
 			end
-			container_volumes[volume.container] = true
+			volume_targets[volume.target] = true
 		end
 		if app.environment ~= nil and type(app.environment) ~= "table" then
 			return false, string.format("应用 %s 的环境变量配置无效", app.id)
@@ -320,7 +320,7 @@ function api_install_app()
 
 	local ports = app.ports or {}
 	local volumes = app.volumes or {}
-	local requested_ports = form_string_array("hostPorts", #ports)
+	local requested_ports = form_string_array("ports", #ports)
 	if not requested_ports then
 		write_error(400, "INVALID_PORTS", "端口配置数量与应用目录不一致")
 		return
@@ -331,19 +331,19 @@ function api_install_app()
 	for index, port in ipairs(ports) do
 		local host_port = tonumber(requested_ports[index])
 		if not host_port or host_port % 1 ~= 0 or host_port < 1 or host_port > 65535 or
-			type(port.container) ~= "number" or port.container % 1 ~= 0 or
-			port.container < 1 or port.container > 65535 or used_host_ports[host_port] then
+			type(port.target) ~= "number" or port.target % 1 ~= 0 or
+			port.target < 1 or port.target > 65535 or used_host_ports[host_port] then
 			write_error(400, "INVALID_PORT", "端口配置无效")
 			return
 		end
 		used_host_ports[host_port] = true
 		task_ports[#task_ports + 1] = {
-			host = host_port,
-			container = port.container,
+			port = host_port,
+			target = port.target,
 		}
 	end
 
-	local requested_volumes = form_string_array("volumePaths", #volumes)
+	local requested_volumes = form_string_array("volumes", #volumes)
 	if not requested_volumes then
 		write_error(400, "INVALID_VOLUMES", "存储映射数量与应用目录不一致")
 		return
@@ -359,9 +359,9 @@ function api_install_app()
 				return
 			end
 			task_volumes[#task_volumes + 1] = {
-				host = requested_path,
-				container = volume.container,
-				type = volume.type or "directory",
+				source = requested_path,
+				target = volume.target,
+				type = volume.type,
 			}
 		end
 	end

@@ -39,9 +39,9 @@ if type(ports) ~= "table" or type(volumes) ~= "table" then
 end
 
 for index, port in ipairs(ports) do
-	if type(port) ~= "table" or type(port.host) ~= "number" or port.host % 1 ~= 0 or
-		port.host < 1 or port.host > 65535 or type(port.container) ~= "number" or
-		port.container % 1 ~= 0 or port.container < 1 or port.container > 65535 then
+	if type(port) ~= "table" or type(port.port) ~= "number" or port.port % 1 ~= 0 or
+		port.port < 1 or port.port > 65535 or type(port.target) ~= "number" or
+		port.target % 1 ~= 0 or port.target < 1 or port.target > 65535 then
 		print(string.format("[错误] 第 %d 个端口映射配置无效", index))
 		os.exit(2)
 	end
@@ -52,10 +52,10 @@ for index, volume in ipairs(volumes) do
 		print(string.format("[错误] 第 %d 个存储映射配置无效", index))
 		os.exit(2)
 	end
-	local volume_type = volume.type or "directory"
-	if type(volume.host) ~= "string" or volume.host == "" or
-		type(volume.container) ~= "string" or volume.container:sub(1, 1) ~= "/" or
-		(volume_type ~= "directory" and volume_type ~= "file") then
+	local volume_type = volume.type
+	if type(volume.source) ~= "string" or volume.source == "" or
+		type(volume.target) ~= "string" or volume.target:sub(1, 1) ~= "/" or
+		(volume_type ~= "dir" and volume_type ~= "file") then
 		print(string.format("[错误] 第 %d 个存储映射配置无效", index))
 		os.exit(2)
 	end
@@ -88,25 +88,25 @@ if not execute("[网络] 检查 DockerGo 专用网络",
 end
 
 for index, volume in ipairs(volumes) do
-	local volume_type = volume.type or "directory"
+	local volume_type = volume.type
 
-	if volume_type == "directory" then
-		if not execute("[存储] 创建数据目录 " .. volume.host,
-			{"/bin/mkdir", "-p", volume.host}) then
+	if volume_type == "dir" then
+		if not execute("[存储] 创建数据目录 " .. volume.source,
+			{"/bin/mkdir", "-p", volume.source}) then
 			print("[错误] 无法创建数据目录")
 			os.exit(1)
 		end
 	else
-		local parent = volume.host:match("^(.*)/[^/]+$")
+		local parent = volume.source:match("^(.*)/[^/]+$")
 		if not parent or not execute("[存储] 创建配置目录 " .. parent,
 			{"/bin/mkdir", "-p", parent}) then
 			print("[错误] 无法创建配置文件所在目录")
 			os.exit(1)
 		end
 
-		local file_type = fs.lstat(volume.host, "type")
+		local file_type = fs.lstat(volume.source, "type")
 		if file_type == nil then
-			local config_file = io.open(volume.host, "w")
+			local config_file = io.open(volume.source, "w")
 			if not config_file then
 				print("[错误] 无法创建配置文件")
 				os.exit(1)
@@ -135,11 +135,11 @@ local create = {
 
 for _, port in ipairs(ports) do
 	create[#create + 1] = "--publish"
-	create[#create + 1] = string.format("0.0.0.0:%d:%d/tcp", port.host, port.container)
+	create[#create + 1] = string.format("0.0.0.0:%d:%d/tcp", port.port, port.target)
 end
 for _, volume in ipairs(volumes) do
 	create[#create + 1] = "--volume"
-	create[#create + 1] = volume.host .. ":" .. volume.container
+	create[#create + 1] = volume.source .. ":" .. volume.target
 end
 for key, value in pairs(config.environment or {}) do
 	create[#create + 1] = "--env"

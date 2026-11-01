@@ -4,8 +4,8 @@ import type { CatalogApp, InstallConfiguration } from "../types"
 
 function getDefaultConfiguration(app: CatalogApp): InstallConfiguration {
   return {
-    hostPorts: app.ports.map((port) => String(port.host)),
-    volumePaths: app.volumes.map(() => ""),
+    ports: app.ports.map((port) => String(port.port)),
+    volumes: app.volumes.map(() => ""),
     autoStart: app.autoStart ?? false,
   }
 }

@@ -10,9 +10,9 @@
       "autoStart": true,
       "ports": [
         {
-          "container": 80,
-          "host": 8080,
-          "web": true
+          "port": 8080,
+          "target": 80,
+          "desc": "默认端口"
         }
       ]
     },
@@ -24,14 +24,14 @@
       "image": "ghcr.io/mikf/gallery-dl:v1.32.19",
       "volumes": [
         {
-          "container": "/gallery-dl",
-          "host": "downloads",
-          "type": "directory"
+          "target": "/gallery-dl",
+          "type": "dir",
+          "desc": "下载目录"
         },
         {
-          "container": "/etc/gallery-dl.conf",
-          "host": "gallery-dl.conf",
-          "type": "file"
+          "target": "/etc/gallery-dl.conf",
+          "type": "file",
+          "desc": "配置文件"
         }
       ]
     }
