@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "apps": [
+    {
+      "id": "nginx",
+      "title": "Nginx",
+      "description": "高性能 HTTP 服务器与反向代理服务器",
+      "tags": ["网络", "Web", "反向代理"],
+      "image": "nginx:1.30.5-alpine",
+      "ports": [
+        {
+          "container": 80,
+          "host": 8080,
+          "web": true
+        }
+      ]
+    },
+    {
+      "id": "gallery-dl",
+      "title": "gallery-dl",
+      "description": "支持多个图片与媒体站点的命令行下载工具",
+      "tags": ["下载", "图片", "媒体"],
+      "image": "ghcr.io/mikf/gallery-dl:v1.32.19",
+      "volumes": [
+        {
+          "container": "/gallery-dl",
+          "host": "downloads",
+          "type": "directory"
+        },
+        {
+          "container": "/etc/gallery-dl.conf",
+          "host": "gallery-dl.conf",
+          "type": "file"
+        }
+      ]
+    }
+  ]
+}

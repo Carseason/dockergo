@@ -19,6 +19,8 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 
 应用市场由 `/catalog` 返回的数据渲染。后端仅接受 `schemaVersion` 为 `1`、
 应用 ID 唯一且核心字段完整的目录文件；缺失、过大或无法解析的目录会返回明确的 JSON 错误。
+仓库中的 `datas/catalog.yaml` 是可编辑目录，`datas/catalog.json` 是对应的 JSON 数据；
+插件携带的 `/usr/share/dockergo/catalog.json` 与生成结果保持一致，并由 `/catalog` 接口直接读取。
 存储项可通过 `volumes[].type` 声明为 `directory` 或 `file`，省略时默认为
 `directory`。文件类型会将宿主机文件直接映射到容器内的 `container` 路径。
 

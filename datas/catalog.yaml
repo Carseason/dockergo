@@ -15,7 +15,7 @@ apps:
 
   - id: gallery-dl
     title: gallery-dl
-    description: 支持多个图片与媒体站点的命令行下载工具，以任务队列服务模式运行
+    description: 支持多个图片与媒体站点的命令行下载工具
     tags:
       - 下载
       - 图片
