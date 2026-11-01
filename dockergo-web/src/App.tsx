@@ -120,11 +120,6 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
     showToast("success", "容器已卸载", `${name} 已从设备中移除`)
   }, [docker.remove, removeContainer, showToast])
 
-  const selectTab = (tab: string) => {
-    setActiveTab(tab)
-    if (tab === "已安装") void docker.refresh()
-  }
-
   const browseAllApps = () => {
     setActiveTab("应用市场")
     document
@@ -207,7 +202,7 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
               containersLoading={docker.loading}
               pendingContainerId={docker.pendingContainerId}
               activeTab={activeTab}
-              onTabChange={selectTab}
+              onTabChange={setActiveTab}
               onInstall={installer.openInstaller}
               onRefreshApps={() => void catalog.refresh()}
               onRefreshContainers={() => void docker.refresh()}
