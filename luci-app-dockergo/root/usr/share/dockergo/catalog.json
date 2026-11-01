@@ -62,6 +62,39 @@
       }
     },
     {
+      "id": "gallery-dl",
+      "title": "gallery-dl",
+      "description": "支持多个图片与媒体站点的命令行下载工具，以任务队列服务模式运行",
+      "tags": ["下载", "图片", "媒体"],
+      "image": "ghcr.io/mikf/gallery-dl:v1.32.19",
+      "ports": [
+        {
+          "container": 64696,
+          "host": 64696,
+          "web": false
+        }
+      ],
+      "volumes": [
+        {
+          "container": "/gallery-dl",
+          "host": "downloads",
+          "type": "directory"
+        },
+        {
+          "container": "/etc/gallery-dl.conf",
+          "host": "gallery-dl.conf",
+          "type": "file"
+        }
+      ],
+      "command": [
+        "--server",
+        "-o",
+        "server.host=0.0.0.0",
+        "-o",
+        "server.timeout=-1"
+      ]
+    },
+    {
       "id": "freshrss",
       "title": "FreshRSS",
       "description": "支持多用户和扩展的自托管 RSS 阅读器",
