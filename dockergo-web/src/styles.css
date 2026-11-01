@@ -1114,7 +1114,23 @@ main {
   color: var(--blue);
 }
 
-.directory-picker__item span {
+.directory-picker__item--selected {
+  background: #e8f0ff;
+  color: var(--blue);
+  box-shadow: inset 3px 0 0 var(--blue);
+}
+
+.directory-picker__item:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.directory-picker__item:disabled:hover {
+  background: transparent;
+  color: #526078;
+}
+
+.directory-picker__item > span:nth-child(2) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -10,7 +10,7 @@ import type {
   DockerContainerListResponse,
   DockerContainerLogsResponse,
   DockerContainerRemoveResponse,
-  DockerDirectoryListResponse,
+  DockerFileListResponse,
   DockerInstallResponse,
   InstallConfiguration,
 } from "../types"
@@ -92,9 +92,18 @@ function normalizeCatalogVolume(value: unknown): CatalogVolume | null {
 
   const container = value.container
   const host = value.host
-  if (typeof container !== "string" || typeof host !== "string") return null
+  const type = value.type === "file" ? "file" : "directory"
+  if (
+    typeof container !== "string" ||
+    typeof host !== "string" ||
+    (value.type !== undefined &&
+      value.type !== "directory" &&
+      value.type !== "file")
+  ) {
+    return null
+  }
 
-  return { container, host }
+  return { container, host, type }
 }
 
 function normalizeCatalogApp(value: unknown): CatalogApp | null {
@@ -171,11 +180,9 @@ export function listDockerContainers(): Promise<DockerContainerListResponse> {
   return requestJson<DockerContainerListResponse>("containers")
 }
 
-export function listDockerDirectories(
-  path: string,
-): Promise<DockerDirectoryListResponse> {
-  return requestJson<DockerDirectoryListResponse>(
-    `directories?path=${encodeURIComponent(path)}`,
+export function listDockerFiles(path: string): Promise<DockerFileListResponse> {
+  return requestJson<DockerFileListResponse>(
+    `files?path=${encodeURIComponent(path)}`,
   )
 }
 

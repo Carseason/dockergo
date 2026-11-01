@@ -31,6 +31,7 @@ export function InstallDialog({
   const [directoryPickerOpen, setDirectoryPickerOpen] = useState(false)
   const port = app.ports.find((candidate) => candidate.web) || app.ports[0]
   const hasVolume = app.volumes.length > 0
+  const volumeType = app.volumes[0]?.type || "directory"
   const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
   const isValid =
     (!port || configuration.hostPort.length > 0) &&
@@ -121,7 +122,9 @@ export function InstallDialog({
 
           {hasVolume && (
             <div className="form-group">
-              <label htmlFor="data-directory">映射目录</label>
+              <label htmlFor="data-directory">
+                映射{volumeType === "file" ? "文件" : "目录"}
+              </label>
               <div className="directory-input">
                 <span aria-hidden="true">/</span>
                 <input
@@ -140,15 +143,17 @@ export function InstallDialog({
                   type="button"
                   className="directory-input__browse"
                   disabled={submitting}
-                  aria-label="选择映射目录"
-                  title="选择映射目录"
+                  aria-label={`选择映射${
+                    volumeType === "file" ? "文件" : "目录"
+                  }`}
+                  title={`选择映射${volumeType === "file" ? "文件" : "目录"}`}
                   onClick={() => setDirectoryPickerOpen(true)}
                 >
                   <FolderOpen size={18} weight="duotone" />
                 </button>
               </div>
               <small id="data-directory-help">
-                可手动输入，或从设备的 /mnt 存储目录中选择
+                可手动输入，或从设备的 /mnt 存储中选择
               </small>
             </div>
           )}
@@ -199,6 +204,7 @@ export function InstallDialog({
       {directoryPickerOpen && (
         <DirectoryPickerDialog
           initialPath={configuration.dataDirectory}
+          selectionType={volumeType}
           onSelect={(path) => {
             onConfigurationChange({ dataDirectory: path })
             setDirectoryPickerOpen(false)

@@ -7,6 +7,7 @@ export type CatalogPort = {
 export type CatalogVolume = {
   container: string
   host: string
+  type: "directory" | "file"
 }
 
 export type CatalogApp = {
@@ -146,15 +147,16 @@ export type DockerInstallResponse = {
   error?: DockerApiError
 }
 
-export type DockerDirectory = {
+export type DockerFileEntry = {
   name: string
   path: string
+  type: "directory" | "file"
 }
 
-export type DockerDirectoryListResponse = {
+export type DockerFileListResponse = {
   success: boolean
   path: string
   parent?: string
-  directories: DockerDirectory[]
+  entries: DockerFileEntry[]
   error?: DockerApiError
 }

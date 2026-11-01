@@ -2,6 +2,7 @@
 
 local jsonc = require "luci.jsonc"
 local util = require "luci.util"
+local fs = require "nixio.fs"
 
 io.stdout:setvbuf("line")
 
@@ -57,11 +58,39 @@ if not execute("[网络] 检查 DockerGo 专用网络",
 end
 
 if config.volume then
+	local volume_type = config.volume.type or "directory"
 	if type(config.volume.host) ~= "string" or type(config.volume.container) ~= "string" or
-		not execute("[存储] 创建数据目录 " .. config.volume.host,
-			{"/bin/mkdir", "-p", config.volume.host}) then
-		print("[错误] 无法创建数据目录")
+		(volume_type ~= "directory" and volume_type ~= "file") then
+		print("[错误] 存储映射配置无效")
 		os.exit(1)
+	end
+
+	if volume_type == "directory" then
+		if not execute("[存储] 创建数据目录 " .. config.volume.host,
+			{"/bin/mkdir", "-p", config.volume.host}) then
+			print("[错误] 无法创建数据目录")
+			os.exit(1)
+		end
+	else
+		local parent = config.volume.host:match("^(.*)/[^/]+$")
+		if not parent or not execute("[存储] 创建配置目录 " .. parent,
+			{"/bin/mkdir", "-p", parent}) then
+			print("[错误] 无法创建配置文件所在目录")
+			os.exit(1)
+		end
+
+		local file_type = fs.lstat(config.volume.host, "type")
+		if file_type == nil then
+			local config_file = io.open(config.volume.host, "w")
+			if not config_file then
+				print("[错误] 无法创建配置文件")
+				os.exit(1)
+			end
+			config_file:close()
+		elseif file_type ~= "reg" then
+			print("[错误] 配置文件路径不是普通文件")
+			os.exit(1)
+		end
 	end
 end
 

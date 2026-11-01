@@ -15,7 +15,7 @@ local INSTALL_RUNNER = "/usr/libexec/dockergo-install"
 
 function index()
 	entry({"admin", "services", "dockergo", "api", "catalog"}, call("api_catalog")).leaf = true
-	entry({"admin", "services", "dockergo", "api", "directories"}, call("api_list_directories")).leaf = true
+	entry({"admin", "services", "dockergo", "api", "files"}, call("api_list_files")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "install"}, post("api_install_app")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "containers"}, call("api_list_containers")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "inspect"}, call("api_inspect_container")).leaf = true
@@ -83,6 +83,13 @@ local function valid_catalog(catalog)
 		end
 		if app.volumes ~= nil and type(app.volumes) ~= "table" then
 			return false, string.format("应用 %s 的存储配置无效", app.id)
+		end
+		for _, volume in ipairs(app.volumes or {}) do
+			if type(volume) ~= "table" or type(volume.container) ~= "string" or
+				type(volume.host) ~= "string" or (volume.type ~= nil and
+				volume.type ~= "directory" and volume.type ~= "file") then
+				return false, string.format("应用 %s 的存储配置无效", app.id)
+			end
 		end
 		if app.environment ~= nil and type(app.environment) ~= "table" then
 			return false, string.format("应用 %s 的环境变量配置无效", app.id)
@@ -164,7 +171,7 @@ function api_catalog()
 	write_json(200, catalog)
 end
 
-function api_list_directories()
+function api_list_files()
 	local path = http.formvalue("path") or "/mnt"
 	if not valid_directory_path(path) then
 		write_error(400, "INVALID_DIRECTORY_PATH", "只能浏览 /mnt 下的目录")
@@ -182,20 +189,25 @@ function api_list_directories()
 		return
 	end
 
-	local directories = {}
+	local entries = {}
 	for name in iterator do
 		if name:match("^[A-Za-z0-9][A-Za-z0-9._-]*$") then
 			local child_path = path .. "/" .. name
-			if fs.lstat(child_path, "type") == "dir" then
-				directories[#directories + 1] = {
+			local entry_type = fs.lstat(child_path, "type")
+			if entry_type == "dir" or entry_type == "reg" then
+				entries[#entries + 1] = {
 					name = name,
 					path = child_path,
+					type = entry_type == "dir" and "directory" or "file",
 				}
 			end
 		end
 	end
 
-	table.sort(directories, function(left, right)
+	table.sort(entries, function(left, right)
+		if left.type ~= right.type then
+			return left.type == "directory"
+		end
 		return left.name:lower() < right.name:lower()
 	end)
 
@@ -211,7 +223,7 @@ function api_list_directories()
 		success = true,
 		path = path,
 		parent = parent,
-		directories = directories,
+		entries = entries,
 	})
 end
 
@@ -292,7 +304,9 @@ function api_install_app()
 	if volumes[1] then
 		data_directory = http.formvalue("dataDirectory")
 		if not valid_data_directory(data_directory) or
-			type(volumes[1].container) ~= "string" or volumes[1].container:sub(1, 1) ~= "/" then
+			type(volumes[1].container) ~= "string" or volumes[1].container:sub(1, 1) ~= "/" or
+			(volumes[1].type ~= nil and volumes[1].type ~= "directory" and
+			volumes[1].type ~= "file") then
 			write_error(400, "INVALID_DATA_DIRECTORY", "数据目录必须位于 /docker/apps/ 或 /mnt/<磁盘>/ 下")
 			return
 		end
@@ -338,6 +352,7 @@ function api_install_app()
 		task_config.volume = {
 			host = data_directory,
 			container = volumes[1].container,
+			type = volumes[1].type or "directory",
 		}
 	end
 
