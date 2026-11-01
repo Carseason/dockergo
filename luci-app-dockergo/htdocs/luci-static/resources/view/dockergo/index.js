@@ -1,5 +1,73 @@
 'use strict';
 'require view';
+'require ui';
+
+function selectDirectory(currentPath) {
+	return new Promise(function(resolve, reject) {
+		const selectedPath = typeof currentPath === 'string' && currentPath.indexOf('/mnt/') === 0
+			? currentPath
+			: null;
+		const picker = new ui.FileUpload(selectedPath, {
+			id: 'dockergo-directory-picker',
+			name: 'dockergo-directory-picker',
+			browser: false,
+			directory_create: false,
+			directory_select: true,
+			show_hidden: false,
+			enable_upload: false,
+			enable_remove: false,
+			enable_download: false,
+			root_directory: '/mnt',
+			initial_directory: '/mnt'
+		});
+		const overlayHost = document.getElementById('dockergo-overlay-root');
+		const previousDisplay = overlayHost ? overlayHost.style.display : '';
+		let settled = false;
+
+		function finish(path) {
+			if (settled)
+				return;
+
+			settled = true;
+			ui.hideModal();
+			if (overlayHost)
+				overlayHost.style.display = previousDisplay;
+			resolve(path || null);
+		}
+
+		picker.render().then(function(pickerElement) {
+			pickerElement.addEventListener('cbi-fileupload-select', function(event) {
+				finish(event.detail && event.detail.path);
+			});
+			pickerElement.addEventListener('cbi-fileupload-cancel', function() {
+				finish(null);
+			});
+
+			if (overlayHost)
+				overlayHost.style.display = 'none';
+
+			ui.showModal('选择映射目录', [
+				E('p', {}, ['请选择 /mnt 下的存储目录。']),
+				pickerElement,
+				E('div', { 'class': 'right' }, [
+					E('button', {
+						'type': 'button',
+						'class': 'btn',
+						'click': function() { finish(null); }
+					}, ['取消'])
+				])
+			]);
+
+			const openButton = pickerElement.querySelector('.open-file-browser');
+			if (openButton)
+				openButton.click();
+		}).catch(function(error) {
+			if (overlayHost)
+				overlayHost.style.display = previousDisplay;
+			reject(error);
+		});
+	});
+}
 
 function loadModule(src) {
 	if (window.DockerGoMount)
@@ -126,6 +194,7 @@ return view.extend({
 			apiBase: L.url('admin/services/dockergo/api'),
 			csrfToken: L.env.token
 		});
+		window.DockerGoSelectDirectory = selectDirectory;
 
 		const host = E('div', {
 			'id': 'dockergo-root',
@@ -167,6 +236,7 @@ return view.extend({
 
 		this.mountNode = null;
 		this.overlayHost = null;
+		delete window.DockerGoSelectDirectory;
 	},
 
 	handleSave: null,

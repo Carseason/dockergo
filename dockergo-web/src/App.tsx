@@ -136,6 +136,7 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
           configuration={installer.configuration}
           submitting={installer.submitting}
           onConfigurationChange={installer.updateConfiguration}
+          onError={(message) => showToast("error", "无法选择映射目录", message)}
           onInstall={() => void confirmInstallation()}
           onClose={installer.closeInstaller}
         />

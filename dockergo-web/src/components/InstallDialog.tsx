@@ -1,5 +1,11 @@
-import { DownloadSimple, SpinnerGap, X } from "@phosphor-icons/react"
-import { useEffect, useRef } from "react"
+import {
+  DownloadSimple,
+  FolderOpen,
+  SpinnerGap,
+  X,
+} from "@phosphor-icons/react"
+import { useEffect, useRef, useState } from "react"
+import { selectSystemDirectory } from "../systemDirectoryPicker"
 import type { CatalogApp, InstallConfiguration } from "../types"
 
 type InstallDialogProps = {
@@ -7,6 +13,7 @@ type InstallDialogProps = {
   configuration: InstallConfiguration
   submitting: boolean
   onConfigurationChange: (patch: Partial<InstallConfiguration>) => void
+  onError: (message: string) => void
   onInstall: () => void
   onClose: () => void
 }
@@ -16,10 +23,12 @@ export function InstallDialog({
   configuration,
   submitting,
   onConfigurationChange,
+  onError,
   onInstall,
   onClose,
 }: InstallDialogProps) {
   const titleRef = useRef<HTMLHeadingElement>(null)
+  const [selectingDirectory, setSelectingDirectory] = useState(false)
   const port = app.ports.find((candidate) => candidate.web) || app.ports[0]
   const hasVolume = app.volumes.length > 0
   const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
@@ -37,6 +46,19 @@ export function InstallDialog({
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [onClose, submitting])
+
+  const chooseDirectory = async () => {
+    setSelectingDirectory(true)
+
+    try {
+      const selected = await selectSystemDirectory(configuration.dataDirectory)
+      if (selected) onConfigurationChange({ dataDirectory: selected })
+    } catch (error) {
+      onError(error instanceof Error ? error.message : "无法打开系统目录选择器")
+    } finally {
+      setSelectingDirectory(false)
+    }
+  }
 
   return (
     <div
@@ -125,9 +147,19 @@ export function InstallDialog({
                   placeholder="docker/apps/app-name"
                   aria-describedby="data-directory-help"
                 />
+                <button
+                  type="button"
+                  className="directory-input__browse"
+                  disabled={submitting || selectingDirectory}
+                  aria-label="选择映射目录"
+                  title="选择映射目录"
+                  onClick={() => void chooseDirectory()}
+                >
+                  <FolderOpen size={18} weight="duotone" />
+                </button>
               </div>
               <small id="data-directory-help">
-                应用配置和数据将持久化保存在此目录
+                可手动输入，或从设备的 /mnt 存储目录中选择
               </small>
             </div>
           )}

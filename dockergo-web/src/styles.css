@@ -1605,11 +1605,41 @@ main {
 }
 
 .directory-input input {
+  min-width: 0;
+  flex: 1;
   height: 100%;
   padding: 0 10px 0 2px;
   border: 0;
   background: transparent;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.directory-input__browse {
+  width: 42px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid #d7dde7;
+  border-radius: 0 6px 6px 0;
+  outline: 0;
+  background: transparent;
+  color: var(--blue);
+  display: grid;
+  flex: none;
+  place-items: center;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.directory-input__browse:hover:not(:disabled),
+.directory-input__browse:focus-visible {
+  background: var(--blue-soft);
+  color: var(--blue-strong);
+}
+
+.directory-input__browse:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .install-options {
