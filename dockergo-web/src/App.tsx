@@ -89,14 +89,18 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
         if (exitCode === 0) {
           showToast(
             "success",
-            "部署任务已完成",
-            `${task.appTitle} 已安装为容器 ${task.containerName}`,
+            task.mode === "task" ? "任务执行完成" : "部署任务已完成",
+            task.mode === "task"
+              ? `${task.appTitle} 已运行完成，容器 ${task.containerName} 已保留`
+              : `${task.appTitle} 已安装为容器 ${task.containerName}`,
           )
         } else {
           showToast(
             "error",
-            "应用安装失败",
-            `${task.appTitle} 安装任务退出，错误码 ${exitCode}`,
+            task.mode === "task" ? "任务执行失败" : "应用安装失败",
+            `${task.appTitle} ${
+              task.mode === "task" ? "运行" : "安装"
+            }任务退出，错误码 ${exitCode}`,
           )
         }
       })

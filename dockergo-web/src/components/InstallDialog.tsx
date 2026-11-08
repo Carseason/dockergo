@@ -1,6 +1,7 @@
 import {
   DownloadSimple,
   FolderOpen,
+  Play,
   SpinnerGap,
   X,
 } from "@phosphor-icons/react"
@@ -32,10 +33,19 @@ export function InstallDialog({
     null,
   )
   const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
+  const isTask = app.mode === "task"
   const isValid =
     configuration.ports.length === app.ports.length &&
     configuration.ports.every((port) => port.length > 0) &&
-    configuration.volumes.length === app.volumes.length
+    configuration.volumes.length === app.volumes.length &&
+    app.volumes.every(
+      (volume, index) =>
+        !volume.required || Boolean(configuration.volumes[index]?.trim()),
+    ) &&
+    app.inputs.every(
+      (input) =>
+        !input.required || Boolean(configuration.inputs[input.id]?.trim()),
+    )
 
   const updateHostPort = (index: number, value: string) => {
     onConfigurationChange({
@@ -50,6 +60,12 @@ export function InstallDialog({
       volumes: configuration.volumes.map((path, pathIndex) =>
         pathIndex === index ? value : path,
       ),
+    })
+  }
+
+  const updateInput = (id: string, value: string) => {
+    onConfigurationChange({
+      inputs: { ...configuration.inputs, [id]: value },
     })
   }
 
@@ -93,11 +109,15 @@ export function InstallDialog({
         <div className="app-logo modal-logo app-logo--blue" aria-hidden="true">
           {mark}
         </div>
-        <span className="modal-kicker">安装配置</span>
+        <span className="modal-kicker">{isTask ? "任务配置" : "安装配置"}</span>
         <h2 id="install-title" ref={titleRef} tabIndex={-1}>
           {app.title}
         </h2>
-        <p>配置端口与持久化目录，确认后将在系统任务窗口中显示安装日志。</p>
+        <p>
+          {isTask
+            ? "填写运行参数与存储目录，任务输出将在系统任务窗口中实时显示。"
+            : "配置端口与持久化目录，确认后将在系统任务窗口中显示安装日志。"}
+        </p>
 
         <form
           className="config-form"
@@ -106,6 +126,29 @@ export function InstallDialog({
             onInstall()
           }}
         >
+          {app.inputs.map((input) => {
+            const inputId = `task-input-${input.id}`
+            return (
+              <div className="form-group" key={input.id}>
+                <label htmlFor={inputId}>
+                  {input.title}（{input.required ? "必填" : "可选"}）
+                </label>
+                <input
+                  id={inputId}
+                  className="task-input"
+                  disabled={submitting}
+                  required={input.required}
+                  maxLength={2048}
+                  value={configuration.inputs[input.id] || ""}
+                  placeholder={input.placeholder}
+                  onChange={(event) =>
+                    updateInput(input.id, event.target.value)
+                  }
+                />
+              </div>
+            )
+          })}
+
           {app.ports.length > 0 && (
             <fieldset className="form-group">
               <legend>端口映射</legend>
@@ -148,12 +191,14 @@ export function InstallDialog({
             return (
               <div className="form-group" key={`${volume.target}-${index}`}>
                 <label htmlFor={inputId}>
-                  {volume.desc}（{typeLabel}，可选）
+                  {volume.desc}（{typeLabel}，
+                  {volume.required ? "必填" : "可选"}）
                 </label>
                 <div className="directory-input">
                   <input
                     id={inputId}
                     disabled={submitting}
+                    required={volume.required}
                     value={configuration.volumes[index] || ""}
                     onChange={(event) =>
                       updateVolumePath(index, event.target.value)
@@ -173,45 +218,48 @@ export function InstallDialog({
                   </button>
                 </div>
                 <small id={helpId}>
-                  留空则不启用；容器内固定映射到 {volume.target}
+                  {volume.required ? "必须选择" : "留空则不启用"}
+                  ；容器内固定映射到 {volume.target}
                 </small>
               </div>
             )
           })}
 
-          <div className="install-options">
-            <label>
-              <input
-                type="checkbox"
-                disabled={submitting}
-                checked={configuration.startNow}
-                onChange={(event) =>
-                  onConfigurationChange({ startNow: event.target.checked })
-                }
-              />
-              <span>
-                <strong>立即启动</strong>
-                <small>安装完成后立即启动容器</small>
-              </span>
-            </label>
-
-            {app.autoStart !== undefined && (
+          {!isTask && (
+            <div className="install-options">
               <label>
                 <input
                   type="checkbox"
                   disabled={submitting}
-                  checked={configuration.autoStart}
+                  checked={configuration.startNow}
                   onChange={(event) =>
-                    onConfigurationChange({ autoStart: event.target.checked })
+                    onConfigurationChange({ startNow: event.target.checked })
                   }
                 />
                 <span>
-                  <strong>自动启动</strong>
-                  <small>Docker 启动时自动运行应用</small>
+                  <strong>立即启动</strong>
+                  <small>安装完成后立即启动容器</small>
                 </span>
               </label>
-            )}
-          </div>
+
+              {app.autoStart !== undefined && (
+                <label>
+                  <input
+                    type="checkbox"
+                    disabled={submitting}
+                    checked={configuration.autoStart}
+                    onChange={(event) =>
+                      onConfigurationChange({ autoStart: event.target.checked })
+                    }
+                  />
+                  <span>
+                    <strong>自动启动</strong>
+                    <small>Docker 启动时自动运行应用</small>
+                  </span>
+                </label>
+              )}
+            </div>
+          )}
 
           <div className="install-summary">
             <div>
@@ -227,10 +275,18 @@ export function InstallDialog({
           >
             {submitting ? (
               <SpinnerGap className="is-spinning" size={17} />
+            ) : isTask ? (
+              <Play size={17} weight="fill" />
             ) : (
               <DownloadSimple size={17} weight="bold" />
             )}
-            {submitting ? "正在创建安装任务" : "确认配置并安装"}
+            {submitting
+              ? isTask
+                ? "正在创建运行任务"
+                : "正在创建安装任务"
+              : isTask
+                ? "确认配置并运行"
+                : "确认配置并安装"}
           </button>
         </form>
       </section>

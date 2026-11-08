@@ -80,6 +80,11 @@ local function valid_catalog(catalog)
 		end
 		ids[app.id] = true
 
+		local mode = app.mode or "service"
+		if mode ~= "service" and mode ~= "task" then
+			return false, string.format("应用 %s 的运行模式无效", app.id)
+		end
+
 		if app.ports ~= nil and type(app.ports) ~= "table" then
 			return false, string.format("应用 %s 的端口配置无效", app.id)
 		end
@@ -102,7 +107,8 @@ local function valid_catalog(catalog)
 			if type(volume) ~= "table" or type(volume.target) ~= "string" or
 				volume.target:sub(1, 1) ~= "/" or type(volume.desc) ~= "string" or
 				volume.desc == "" or volume_targets[volume.target] or
-				(volume.type ~= "dir" and volume.type ~= "file") then
+				(volume.type ~= "dir" and volume.type ~= "file") or
+				(volume.required ~= nil and type(volume.required) ~= "boolean") then
 				return false, string.format("应用 %s 的存储配置无效", app.id)
 			end
 			volume_targets[volume.target] = true
@@ -113,8 +119,49 @@ local function valid_catalog(catalog)
 		if app.command ~= nil and type(app.command) ~= "table" then
 			return false, string.format("应用 %s 的启动命令无效", app.id)
 		end
+		if app.inputs ~= nil and type(app.inputs) ~= "table" then
+			return false, string.format("应用 %s 的运行参数无效", app.id)
+		end
+		local input_ids = {}
+		for _, input in ipairs(app.inputs or {}) do
+			if type(input) ~= "table" or type(input.id) ~= "string" or
+				#input.id > 64 or input.id:match("^[a-z][a-z0-9_-]*$") == nil or
+				type(input.title) ~= "string" or input.title == "" or
+				(input.required ~= nil and type(input.required) ~= "boolean") or
+				(input.placeholder ~= nil and type(input.placeholder) ~= "string") or
+				input_ids[input.id] then
+				return false, string.format("应用 %s 的运行参数无效", app.id)
+			end
+			input_ids[input.id] = true
+		end
+		if mode ~= "task" and next(input_ids) ~= nil then
+			return false, string.format("应用 %s 仅任务模式可声明运行参数", app.id)
+		end
+		local used_inputs = {}
+		for _, argument in ipairs(app.command or {}) do
+			if type(argument) ~= "string" then
+				return false, string.format("应用 %s 的启动命令无效", app.id)
+			end
+			local input_id = argument:match("^{{([a-z][a-z0-9_-]*)}}$")
+			if input_id then
+				if not input_ids[input_id] then
+					return false, string.format("应用 %s 的命令引用了未知参数", app.id)
+				end
+				used_inputs[input_id] = true
+			elseif argument:find("{{", 1, true) or argument:find("}}", 1, true) then
+				return false, string.format("应用 %s 的命令占位符无效", app.id)
+			end
+		end
+		for input_id in pairs(input_ids) do
+			if not used_inputs[input_id] then
+				return false, string.format("应用 %s 存在未使用的运行参数", app.id)
+			end
+		end
 		if app.autoStart ~= nil and type(app.autoStart) ~= "boolean" then
 			return false, string.format("应用 %s 的自动启动配置无效", app.id)
+		end
+		if mode == "task" and app.autoStart ~= nil then
+			return false, string.format("任务应用 %s 不能声明自动启动", app.id)
 		end
 	end
 
@@ -291,6 +338,34 @@ local function form_string_array(name, expected_count)
 	return values
 end
 
+local function form_input_values(definitions)
+	local encoded = http.formvalue("inputs") or "{}"
+	local values = jsonc.parse(encoded)
+	if type(values) ~= "table" then
+		return nil
+	end
+
+	local declared = {}
+	for _, definition in ipairs(definitions) do
+		declared[definition.id] = definition
+	end
+	for id, value in pairs(values) do
+		if type(id) ~= "string" or not declared[id] or type(value) ~= "string" or
+			#value > 2048 or value:find("[%z\1-\31\127]") then
+			return nil
+		end
+	end
+	for id, definition in pairs(declared) do
+		local value = values[id] or ""
+		if definition.required == true and value:match("%S") == nil then
+			return nil
+		end
+		values[id] = value
+	end
+
+	return values
+end
+
 local function task_suffix()
 	local uuid = string_value(sys.exec("cat /proc/sys/kernel/random/uuid 2>/dev/null"))
 	local suffix = uuid:match("^([a-f0-9]+)")
@@ -319,6 +394,7 @@ function api_install_app()
 		write_error(404, "APP_NOT_FOUND", "应用目录中不存在该应用")
 		return
 	end
+	local mode = app.mode or "service"
 
 	local ports = app.ports or {}
 	local volumes = app.volumes or {}
@@ -354,7 +430,10 @@ function api_install_app()
 	local task_volumes = {}
 	for index, volume in ipairs(volumes) do
 		local requested_path = requested_volumes[index]
-		if requested_path ~= "" then
+		if requested_path == "" and volume.required == true then
+			write_error(400, "REQUIRED_VOLUME_MISSING", volume.desc .. "必须选择映射路径")
+			return
+		elseif requested_path ~= "" then
 			if not valid_volume_path(requested_path) then
 				write_error(400, "INVALID_VOLUME_PATH",
 					"映射路径必须位于 /docker/apps/ 或 /mnt/<磁盘>/ 下")
@@ -377,12 +456,16 @@ function api_install_app()
 		end
 	end
 
-	local command = app.command or {}
-	for _, argument in ipairs(command) do
-		if type(argument) ~= "string" then
-			write_error(502, "CATALOG_INVALID", "应用启动命令配置无效")
-			return
-		end
+	local input_values = form_input_values(app.inputs or {})
+	if not input_values then
+		write_error(400, "INVALID_INPUTS", "运行参数无效或缺少必填项")
+		return
+	end
+
+	local command = {}
+	for _, argument in ipairs(app.command or {}) do
+		local input_id = argument:match("^{{([a-z][a-z0-9_-]*)}}$")
+		command[#command + 1] = input_id and input_values[input_id] or argument
 	end
 
 	local start_now = http.formvalue("startNow")
@@ -399,10 +482,12 @@ function api_install_app()
 		title = app.title,
 		version = app.version,
 		image = app.image,
+		mode = mode,
 		instanceId = suffix,
 		containerName = "dgo_" .. app.id .. "_" .. app.version .. "_" .. suffix,
-		startNow = start_now ~= "0",
-		autoStart = type(app.autoStart) == "boolean" and http.formvalue("autoStart") == "1",
+		startNow = mode == "task" or start_now ~= "0",
+		autoStart = mode == "service" and type(app.autoStart) == "boolean" and
+			http.formvalue("autoStart") == "1",
 		environment = environment,
 		command = command,
 		ports = task_ports,
@@ -478,6 +563,7 @@ local function normalize_container(raw)
 		appId = container_label(labels, "io.dockergo.app-id"),
 		appVersion = container_label(labels, "io.dockergo.app-version"),
 		instanceId = container_label(labels, "io.dockergo.instance-id"),
+		mode = container_label(labels, "io.dockergo.mode"),
 	}
 end
 

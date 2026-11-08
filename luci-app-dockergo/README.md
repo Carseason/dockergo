@@ -28,6 +28,12 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 应用仅在声明布尔字段 `autoStart` 时向用户显示自动启动选项，字段值作为默认选择；
 未声明该字段的应用不会显示该选项，后端也会强制关闭 Docker 重启策略。
 
+应用未声明 `mode` 时默认为长期运行的 `service`。一次性应用使用 `mode: task`，
+可通过统一的文本 `inputs` 声明运行参数，并在 `command` 字符串数组中用完整参数
+`{{参数 ID}}` 引用。任务应用不能声明 `autoStart`，运行时强制使用 `restart=no`，
+并通过附加模式等待命令结束、将输出写入系统任务日志。存储项可用 `required: true`
+要求用户必须提供映射路径。
+
 通过应用市场创建的容器使用 `dgo_<应用 ID>_<版本>_<实例 ID>` 命名，并携带
 `io.dockergo.managed`、`io.dockergo.app-id`、`io.dockergo.app-version` 和
 `io.dockergo.instance-id` 标签。容器列表接口返回这些结构化元数据，前端通过应用 ID
@@ -41,7 +47,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 
 `remove` 接收同样格式的 `id` 和 `token` 参数。该操作只删除容器，保留镜像和数据卷。
 
-`install` 接收 `appId`、`ports`、`volumes`、`startNow`、`autoStart` 和 `token`。`startNow` 控制安装完成后是否立即启动容器，未提交时默认为启动；`autoStart` 独立控制 Docker 重启策略。`ports` 与 `volumes` 是 JSON 字符串数组，数量和顺序必须与应用目录中的同名数组一致；存储路径可使用空字符串，表示不创建对应映射。后端只采纳用户可配置值，镜像、容器端口、挂载目标、环境变量和启动命令均重新从应用目录读取。接口通过 `taskd` 启动 `/usr/libexec/dockergo-install`，前端使用系统任务弹窗实时展示安装日志。taskd 实例名固定为 `dockergo`；已有安装任务运行时，重复请求会返回 `409 TASK_BUSY`。
+`install` 接收 `appId`、`ports`、`volumes`、`inputs`、`startNow`、`autoStart` 和 `token`。`inputs` 是键值均为字符串的 JSON 对象，只接受应用目录中声明的参数。`startNow` 控制服务安装后是否立即启动，未提交时默认为启动；任务应用始终立即运行。`autoStart` 独立控制服务的 Docker 重启策略。`ports` 与 `volumes` 是 JSON 字符串数组，数量和顺序必须与应用目录中的同名数组一致；非必填存储路径可使用空字符串，表示不创建对应映射。后端只采纳用户可配置值，镜像、容器端口、挂载目标、环境变量和命令模板均重新从应用目录读取。接口通过 `taskd` 启动 `/usr/libexec/dockergo-install`，前端使用系统任务弹窗实时展示安装日志。taskd 实例名固定为 `dockergo`；已有安装任务运行时，重复请求会返回 `409 TASK_BUSY`。
 
 容器列表成功响应示例：
 

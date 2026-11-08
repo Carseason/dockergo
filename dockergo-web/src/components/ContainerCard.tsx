@@ -67,9 +67,7 @@ function getPortUrl(hostPort: string) {
   return `http://${hostname}:${hostPort}`
 }
 
-function getContainerAction(
-  state: string,
-): {
+function getContainerAction(state: string, taskMode: boolean): {
   action: DockerContainerAction
   label: string
 } | null {
@@ -79,9 +77,10 @@ function getContainerAction(
     case "paused":
       return { action: "unpause", label: "继续" }
     case "created":
+      return { action: "start", label: taskMode ? "运行" : "启动" }
     case "exited":
     case "dead":
-      return { action: "start", label: "启动" }
+      return { action: "start", label: taskMode ? "再次运行" : "启动" }
     default:
       return null
   }
@@ -109,7 +108,10 @@ export function ContainerCard({
   const menuRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const state = container.state.toLowerCase() || "unknown"
-  const control = getContainerAction(state)
+  const control = getContainerAction(
+    state,
+    container.mode === "task" || catalogApp?.mode === "task",
+  )
   const publishedPorts = getPublishedPorts(container.ports)
   const initial = getContainerInitial(container)
 

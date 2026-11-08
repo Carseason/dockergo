@@ -24,11 +24,22 @@
       "description": "支持多个图片与媒体站点的命令行下载工具",
       "tags": ["下载", "图片", "媒体"],
       "image": "ghcr.io/mikf/gallery-dl:v1.32.19",
+      "mode": "task",
+      "inputs": [
+        {
+          "id": "url",
+          "title": "下载地址",
+          "required": true,
+          "placeholder": "https://example.com/album"
+        }
+      ],
+      "command": ["--directory", "/gallery-dl", "{{url}}"],
       "volumes": [
         {
           "target": "/gallery-dl",
           "type": "dir",
-          "desc": "下载目录"
+          "desc": "下载目录",
+          "required": true
         },
         {
           "target": "/etc/gallery-dl.conf",

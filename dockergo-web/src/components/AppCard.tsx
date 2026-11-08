@@ -1,4 +1,4 @@
-import { DownloadSimple } from "@phosphor-icons/react"
+import { DownloadSimple, Play } from "@phosphor-icons/react"
 import type { CatalogApp } from "../types"
 
 type AppCardProps = {
@@ -37,19 +37,27 @@ export function AppCard({ app, onInstall }: AppCardProps) {
             </span>
           ))}
         </div>
-        {app.command.length > 0 && (
+        {app.mode === "task" ? (
+          <p className="app-card__stats">
+            <span>一次性任务</span>
+          </p>
+        ) : app.command.length > 0 ? (
           <p className="app-card__stats">
             <span>自定义命令</span>
           </p>
-        )}
+        ) : null}
         <div className="app-card__footer">
           <button
             type="button"
             className="install-button"
             onClick={() => onInstall(app)}
           >
-            <DownloadSimple size={15} weight="bold" />
-            安装
+            {app.mode === "task" ? (
+              <Play size={15} weight="fill" />
+            ) : (
+              <DownloadSimple size={15} weight="bold" />
+            )}
+            {app.mode === "task" ? "运行" : "安装"}
           </button>
         </div>
       </div>

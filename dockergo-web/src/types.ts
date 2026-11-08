@@ -8,7 +8,17 @@ export type CatalogVolume = {
   target: string
   type: "dir" | "file"
   desc: string
+  required: boolean
 }
+
+export type CatalogInput = {
+  id: string
+  title: string
+  required: boolean
+  placeholder: string
+}
+
+export type CatalogMode = "service" | "task"
 
 export type CatalogApp = {
   id: string
@@ -17,8 +27,10 @@ export type CatalogApp = {
   description: string
   tags: string[]
   image: string
+  mode: CatalogMode
   ports: CatalogPort[]
   volumes: CatalogVolume[]
+  inputs: CatalogInput[]
   environment: Record<string, string>
   command: string[]
   autoStart?: boolean
@@ -45,6 +57,7 @@ export type DockerContainer = {
   appId: string
   appVersion: string
   instanceId: string
+  mode: CatalogMode | ""
 }
 
 export type DockerApiError = {
@@ -143,6 +156,7 @@ export type DockerContainerRemoveResponse = {
 export type InstallConfiguration = {
   ports: string[]
   volumes: string[]
+  inputs: Record<string, string>
   startNow: boolean
   autoStart: boolean
 }

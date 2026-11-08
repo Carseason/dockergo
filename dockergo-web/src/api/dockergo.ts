@@ -1,5 +1,6 @@
 import type {
   CatalogApp,
+  CatalogInput,
   CatalogPort,
   CatalogResponse,
   CatalogVolume,
@@ -94,16 +95,41 @@ function normalizeCatalogVolume(value: unknown): CatalogVolume | null {
   const target = value.target
   const type = value.type
   const desc = value.desc
+  const required = value.required
   if (
     typeof target !== "string" ||
     (type !== "dir" && type !== "file") ||
     typeof desc !== "string" ||
-    desc.length === 0
+    desc.length === 0 ||
+    (required !== undefined && typeof required !== "boolean")
   ) {
     return null
   }
 
-  return { target, type, desc }
+  return { target, type, desc, required: required === true }
+}
+
+function normalizeCatalogInput(value: unknown): CatalogInput | null {
+  if (!isRecord(value)) return null
+
+  const { id, title, required, placeholder } = value
+  if (
+    typeof id !== "string" ||
+    !/^[a-z][a-z0-9_-]{0,63}$/.test(id) ||
+    typeof title !== "string" ||
+    title.length === 0 ||
+    (required !== undefined && typeof required !== "boolean") ||
+    (placeholder !== undefined && typeof placeholder !== "string")
+  ) {
+    return null
+  }
+
+  return {
+    id,
+    title,
+    required: required === true,
+    placeholder: typeof placeholder === "string" ? placeholder : "",
+  }
 }
 
 function normalizeCatalogApp(value: unknown): CatalogApp | null {
@@ -123,6 +149,13 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
   if (value.autoStart !== undefined && typeof value.autoStart !== "boolean") {
     return null
   }
+  if (
+    value.mode !== undefined &&
+    value.mode !== "service" &&
+    value.mode !== "task"
+  ) {
+    return null
+  }
 
   const tags = Array.isArray(value.tags)
     ? value.tags.filter((tag): tag is string => typeof tag === "string")
@@ -137,6 +170,12 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
         .map(normalizeCatalogVolume)
         .filter((volume): volume is CatalogVolume => volume !== null)
     : []
+  const rawInputs = Array.isArray(value.inputs) ? value.inputs : []
+  const normalizedInputs = rawInputs.map(normalizeCatalogInput)
+  if (normalizedInputs.some((input) => input === null)) return null
+  const inputs = normalizedInputs as CatalogInput[]
+  const inputIds = new Set(inputs.map((input) => input.id))
+  if (inputIds.size !== inputs.length) return null
   const environment = isRecord(value.environment)
     ? Object.fromEntries(
         Object.entries(value.environment).filter(
@@ -144,11 +183,27 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
         ),
       )
     : {}
-  const command = Array.isArray(value.command)
-    ? value.command.filter(
-        (argument): argument is string => typeof argument === "string",
-      )
-    : []
+  const rawCommand = Array.isArray(value.command) ? value.command : []
+  if (rawCommand.some((argument) => typeof argument !== "string")) return null
+  const command = rawCommand as string[]
+  const usedInputs = new Set<string>()
+  for (const argument of command) {
+    const match = argument.match(/^\{\{([a-z][a-z0-9_-]*)\}\}$/)
+    if (match) {
+      if (!inputIds.has(match[1])) return null
+      usedInputs.add(match[1])
+    } else if (argument.includes("{{") || argument.includes("}}")) {
+      return null
+    }
+  }
+  const mode = value.mode === "task" ? "task" : "service"
+  if (
+    (mode !== "task" && inputs.length > 0) ||
+    (mode === "task" && value.autoStart !== undefined) ||
+    inputs.some((input) => !usedInputs.has(input.id))
+  ) {
+    return null
+  }
 
   return {
     id,
@@ -157,8 +212,10 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
     description,
     tags,
     image,
+    mode,
     ports,
     volumes,
+    inputs,
     environment,
     command,
     autoStart:
@@ -279,6 +336,7 @@ export function installCatalogApp(
       appId,
       ports: JSON.stringify(configuration.ports),
       volumes: JSON.stringify(configuration.volumes),
+      inputs: JSON.stringify(configuration.inputs),
       startNow: configuration.startNow ? "1" : "0",
       autoStart: configuration.autoStart ? "1" : "0",
       token: csrfToken,

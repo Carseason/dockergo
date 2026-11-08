@@ -27,7 +27,9 @@ local config = jsonc.parse(contents)
 if type(config) ~= "table" or type(config.appId) ~= "string" or
 	type(config.title) ~= "string" or type(config.version) ~= "string" or
 	type(config.instanceId) ~= "string" or type(config.image) ~= "string" or
-	type(config.containerName) ~= "string" or type(config.startNow) ~= "boolean" then
+	type(config.containerName) ~= "string" or type(config.startNow) ~= "boolean" or
+	type(config.autoStart) ~= "boolean" or
+	(config.mode ~= "service" and config.mode ~= "task") then
 	print("[错误] 安装任务配置无效")
 	os.exit(2)
 end
@@ -140,8 +142,9 @@ local create = {
 	"--label", "io.dockergo.app-id=" .. config.appId,
 	"--label", "io.dockergo.app-version=" .. config.version,
 	"--label", "io.dockergo.instance-id=" .. config.instanceId,
+	"--label", "io.dockergo.mode=" .. config.mode,
 	"--network", "dockergo_default",
-	"--restart", config.autoStart and "unless-stopped" or "no",
+	"--restart", config.mode == "service" and config.autoStart and "unless-stopped" or "no",
 }
 
 for _, port in ipairs(ports) do
@@ -167,7 +170,14 @@ if not execute("[容器] 创建 " .. config.containerName, create) then
 	os.exit(1)
 end
 
-if config.startNow then
+if config.mode == "task" then
+	if not execute("[任务] 运行 " .. config.containerName,
+		{"/usr/bin/docker", "container", "start", "--attach", config.containerName}) then
+		print("[错误] 任务执行失败，请查看上方输出")
+		os.exit(1)
+	end
+	print(string.format("[完成] %s 运行完成，容器名称：%s", config.title, config.containerName))
+elseif config.startNow then
 	if not execute("[容器] 启动 " .. config.containerName,
 		{"/usr/bin/docker", "container", "start", config.containerName}) then
 		print("[错误] 容器启动失败")
