@@ -2,6 +2,8 @@
 
 DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的独立 HTTP JSON API，并将 DockerGo React 前端直接挂载到 LuCI 页面。
 
+应用市场字段、安装请求参数、默认值和当前限制详见 [参数说明](../docs/parameters.md)。
+
 ## JSON API
 
 接口前缀：`/cgi-bin/luci/admin/services/dockergo/api`
