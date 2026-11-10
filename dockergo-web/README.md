@@ -23,8 +23,12 @@ pnpm build
 构建 LuCI 插件携带的前端资源：
 
 ```bash
-pnpm build:luci
+../build.sh
 ```
+
+也可以在仓库根目录运行 `./build.sh`。脚本可从任意工作目录调用，要求已安装 Node.js 和 `package.json` 指定的 pnpm（当前为 `10.20.0`）；脚本按锁文件安装依赖，再执行类型检查和生产构建，将结果写入 `luci-app-dockergo/htdocs/luci-static/resources/dockergo/app`。构建会清理并重新生成该资源目录，不编译 IPK/APK，也不上传设备。
+
+依赖已安装时，可在本目录直接执行 `pnpm build:luci`。
 
 ## 项目结构
 

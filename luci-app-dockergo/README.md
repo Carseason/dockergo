@@ -89,14 +89,15 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 
 ## 构建前端资源
 
-在仓库的 `dockergo-web` 目录执行：
+在仓库根目录执行：
 
 ```sh
-pnpm install
-pnpm build:luci
+./build.sh
 ```
 
-生成的文件会写入 `htdocs/luci-static/resources/dockergo/app`，它们是 LuCI 安装包需要携带的运行时资源。
+脚本要求已安装 Node.js 和项目指定的 pnpm，会按锁文件安装依赖、检查 TypeScript 类型，再构建前端。脚本可通过完整路径从任意工作目录调用。
+
+生成的文件会写入本插件的 `htdocs/luci-static/resources/dockergo/app`，它们是 LuCI 安装包需要携带的运行时资源。构建会重新生成该目录，不编译 IPK/APK，也不上传设备。
 
 ## 构建 IPK/APK
 
