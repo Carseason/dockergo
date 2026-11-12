@@ -227,22 +227,6 @@ export function InstallDialog({
             )
           })}
 
-          <div className="install-options">
-            <label>
-              <input
-                type="checkbox"
-                disabled={submitting}
-                checked={configuration.startNow}
-                onChange={(event) =>
-                  onConfigurationChange({ startNow: event.target.checked })
-                }
-              />
-              <span>
-                <strong>立即启动</strong>
-                <small>安装完成后立即启动容器</small>
-              </span>
-            </label>
-          </div>
           <div className="form-group">
             <label htmlFor="restart-policy">重启策略</label>
             <select

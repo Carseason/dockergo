@@ -27,7 +27,7 @@ local config = jsonc.parse(contents)
 if type(config) ~= "table" or type(config.appId) ~= "string" or
 	type(config.title) ~= "string" or type(config.version) ~= "string" or
 	type(config.instanceId) ~= "string" or type(config.image) ~= "string" or
-	type(config.containerName) ~= "string" or type(config.startNow) ~= "boolean" or
+	type(config.containerName) ~= "string" or
 	type(config.d) ~= "boolean" or type(config.rm) ~= "boolean" or
 	(config.restart ~= "no" and config.restart ~= "always" and
 		config.restart ~= "unless-stopped" and config.restart ~= "on-failure") or
@@ -137,8 +137,8 @@ if not execute("[镜像] 拉取 " .. config.image,
 	os.exit(1)
 end
 
-local create = {
-	"/usr/bin/docker", "container", "create",
+local run = {
+	"/usr/bin/docker", "container", "run",
 	"--name", config.containerName,
 	"--label", "io.dockergo.managed=true",
 	"--label", "io.dockergo.app-id=" .. config.appId,
@@ -148,50 +148,41 @@ local create = {
 }
 
 if config.rm then
-	create[#create + 1] = "--rm"
+	run[#run + 1] = "--rm"
 else
-	create[#create + 1] = "--restart"
-	create[#create + 1] = config.restart
+	run[#run + 1] = "--restart"
+	run[#run + 1] = config.restart
+end
+if config.d then
+	run[#run + 1] = "--detach"
 end
 
 for _, port in ipairs(ports) do
-	create[#create + 1] = "--publish"
-	create[#create + 1] = string.format("0.0.0.0:%d:%d/tcp", port.port, port.target)
+	run[#run + 1] = "--publish"
+	run[#run + 1] = string.format("0.0.0.0:%d:%d/tcp", port.port, port.target)
 end
 for _, volume in ipairs(volumes) do
-	create[#create + 1] = "--volume"
-	create[#create + 1] = volume.source .. ":" .. volume.target
+	run[#run + 1] = "--volume"
+	run[#run + 1] = volume.source .. ":" .. volume.target
 end
 for key, value in pairs(config.environment or {}) do
-	create[#create + 1] = "--env"
-	create[#create + 1] = key .. "=" .. value
+	run[#run + 1] = "--env"
+	run[#run + 1] = key .. "=" .. value
 end
 
-create[#create + 1] = config.image
+run[#run + 1] = config.image
 for _, argument in ipairs(config.command or {}) do
-	create[#create + 1] = argument
+	run[#run + 1] = argument
 end
 
-if not execute("[容器] 创建 " .. config.containerName, create) then
-	print("[错误] 容器创建失败，请检查端口、目录和镜像配置")
+if not execute("[容器] 运行 " .. config.containerName, run) then
+	print("[错误] 容器运行失败，请检查上方输出、端口、目录和镜像配置")
 	os.exit(1)
 end
 
-if not config.startNow then
-	print(string.format("[完成] %s 已创建但未启动，容器名称：%s", config.title, config.containerName))
-elseif not config.d then
-	if not execute("[任务] 运行 " .. config.containerName,
-		{"/usr/bin/docker", "container", "start", "--attach", config.containerName}) then
-		print("[错误] 任务执行失败，请查看上方输出")
-		os.exit(1)
-	end
+if not config.d then
 	print(string.format("[完成] %s 本次运行已结束%s", config.title,
 		config.rm and "，容器已自动清理" or "，后续是否重启取决于重启策略"))
 else
-	if not execute("[容器] 启动 " .. config.containerName,
-		{"/usr/bin/docker", "container", "start", config.containerName}) then
-		print("[错误] 容器启动失败")
-		os.exit(1)
-	end
 	print(string.format("[完成] %s 已安装并启动，容器名称：%s", config.title, config.containerName))
 end

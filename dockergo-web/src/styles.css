@@ -1907,44 +1907,6 @@ main {
   cursor: not-allowed;
 }
 
-.install-options {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
-
-.install-options > label {
-  padding: 11px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  cursor: pointer;
-}
-
-.install-options input {
-  margin: 2px 0 0;
-  accent-color: var(--blue);
-}
-
-.install-options strong,
-.install-options small {
-  display: block;
-}
-
-.install-options strong {
-  color: #37445b;
-  font-size: 12px;
-}
-
-.install-options small {
-  margin-top: 3px;
-  color: #687489;
-  font-size: 10px;
-  line-height: 1.4;
-}
-
 .install-summary {
   padding: 14px 18px;
   border-radius: 10px;

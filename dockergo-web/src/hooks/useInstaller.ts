@@ -7,7 +7,6 @@ function getDefaultConfiguration(app: CatalogApp): InstallConfiguration {
     ports: app.ports.map((port) => String(port.port)),
     volumes: app.volumes.map(() => ""),
     inputs: Object.fromEntries(app.inputs.map((input) => [input.id, ""])),
-    startNow: true,
     restart: app.restart,
   }
 }
@@ -48,7 +47,6 @@ export function useInstaller() {
         containerName: response.containerName,
         d: selectedApp.d,
         rm: selectedApp.rm,
-        startNow: configuration.startNow,
       }
       setSelectedApp(null)
       return result

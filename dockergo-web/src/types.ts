@@ -157,7 +157,6 @@ export type InstallConfiguration = {
   ports: string[]
   volumes: string[]
   inputs: Record<string, string>
-  startNow: boolean
   restart: RestartPolicy
 }
 
