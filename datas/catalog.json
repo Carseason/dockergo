@@ -38,13 +38,7 @@
         {
           "target": "/gallery-dl",
           "type": "dir",
-          "desc": "下载目录",
-          "required": true
-        },
-        {
-          "target": "/etc/gallery-dl.conf",
-          "type": "file",
-          "desc": "配置文件"
+          "desc": "下载目录"
         }
       ]
     }
