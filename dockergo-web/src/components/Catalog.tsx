@@ -20,7 +20,9 @@ type CatalogProps = {
   containersLoading: boolean
   pendingContainerId: string
   activeTab: string
+  activeTag: string
   onTabChange: (tab: string) => void
+  onTagChange: (tag: string) => void
   onInstall: (app: CatalogApp) => void
   onRefreshApps: () => void
   onRefreshContainers: () => void
@@ -37,7 +39,9 @@ export function Catalog({
   containersLoading,
   pendingContainerId,
   activeTab,
+  activeTag,
   onTabChange,
+  onTagChange,
   onInstall,
   onRefreshApps,
   onRefreshContainers,
@@ -47,6 +51,13 @@ export function Catalog({
   onRemoveContainer,
 }: CatalogProps) {
   const isInstalled = activeTab === "已安装"
+  const tags = Array.from(
+    new Set(apps.flatMap((app) => app.tags).filter((tag) => tag.trim() !== "")),
+  )
+  if (activeTag && !tags.includes(activeTag)) tags.push(activeTag)
+  const visibleApps = activeTag
+    ? apps.filter((app) => app.tags.includes(activeTag))
+    : apps
   const installedContainers = containers.filter(
     (container) => container.managed || Boolean(container.appId),
   )
@@ -90,6 +101,30 @@ export function Catalog({
         ))}
       </div>
 
+      {!isInstalled && (
+        <div className="market-tags" role="group" aria-label="应用标签筛选">
+          <button
+            type="button"
+            className={!activeTag ? "active" : ""}
+            aria-pressed={!activeTag}
+            onClick={() => onTagChange("")}
+          >
+            全部
+          </button>
+          {tags.map((tag) => (
+            <button
+              type="button"
+              key={tag}
+              className={activeTag === tag ? "active" : ""}
+              aria-pressed={activeTag === tag}
+              onClick={() => onTagChange(tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
+
       {isInstalled ? (
         containersLoading ? (
           <div className="empty-state" role="status">
@@ -125,17 +160,23 @@ export function Catalog({
           <strong>正在加载应用市场</strong>
           <span>正在从 DockerGo 获取应用目录</span>
         </div>
-      ) : apps.length > 0 ? (
+      ) : visibleApps.length > 0 ? (
         <div className="app-grid">
-          {apps.map((app) => (
+          {visibleApps.map((app) => (
             <AppCard key={app.id} app={app} onInstall={onInstall} />
           ))}
         </div>
       ) : (
         <div className="empty-state" role="status">
           <MagnifyingGlass size={28} />
-          <strong>应用市场暂无可用应用</strong>
-          <span>请稍后刷新应用目录</span>
+          <strong>
+            {activeTag ? "没有符合该标签的应用" : "应用市场暂无可用应用"}
+          </strong>
+          <span>
+            {activeTag
+              ? `当前标签：${activeTag}，可选择“全部”查看其他应用`
+              : "请稍后刷新应用目录"}
+          </span>
         </div>
       )}
     </section>

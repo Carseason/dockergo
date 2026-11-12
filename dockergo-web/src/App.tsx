@@ -8,6 +8,7 @@ import { InstallDialog } from "./components/InstallDialog"
 import { RemoveContainerDialog } from "./components/RemoveContainerDialog"
 import { Toast, type ToastVariant } from "./components/Toast"
 import { useCatalog } from "./hooks/useCatalog"
+import { useCatalogRoute } from "./hooks/useCatalogRoute"
 import { useContainers } from "./hooks/useContainers"
 import { useInstaller } from "./hooks/useInstaller"
 import { showSystemTaskLog } from "./systemTasks"
@@ -21,7 +22,7 @@ type ToastNotice = {
 }
 
 export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
-  const [activeTab, setActiveTab] = useState("已安装")
+  const { route, navigate } = useCatalogRoute()
   const [detailsContainer, setDetailsContainer] =
     useState<DockerContainer | null>(null)
   const [logsContainer, setLogsContainer] = useState<DockerContainer | null>(
@@ -83,7 +84,7 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
       if (!task) return
 
       showSystemTaskLog(task.taskId, (exitCode) => {
-        setActiveTab("已安装")
+        navigate({ view: "installed", tag: "" })
         void docker.refresh()
 
         if (exitCode === 0) {
@@ -121,7 +122,7 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
         installError instanceof Error ? installError.message : "应用安装失败",
       )
     }
-  }, [docker.refresh, installer.startInstallation, showToast])
+  }, [docker.refresh, installer.startInstallation, showToast, navigate])
 
   const confirmRemoveContainer = useCallback(async () => {
     if (!removeContainer) return
@@ -135,7 +136,7 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
   }, [docker.remove, removeContainer, showToast])
 
   const browseAllApps = () => {
-    setActiveTab("应用市场")
+    navigate({ view: "market", tag: "" })
     document
       .getElementById("catalog")
       ?.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -195,10 +196,22 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
   return (
     <>
       <div className="app-shell">
-        <a className="skip-link" href="#main-content">
+        <a
+          className="skip-link"
+          href="#main-content"
+          onClick={(event) => {
+            event.preventDefault()
+            const main =
+              event.currentTarget.parentElement?.querySelector<HTMLElement>(
+                "#main-content",
+              )
+            main?.focus()
+            main?.scrollIntoView({ block: "start" })
+          }}
+        >
           跳到主要内容
         </a>
-        <main id="main-content">
+        <main id="main-content" tabIndex={-1}>
           <header className="topbar">
             <div>
               <h1>应用商店</h1>
@@ -215,8 +228,15 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
               appsLoading={catalog.loading}
               containersLoading={docker.loading}
               pendingContainerId={docker.pendingContainerId}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
+              activeTab={route.view === "installed" ? "已安装" : "应用市场"}
+              activeTag={route.tag}
+              onTabChange={(tab) =>
+                navigate({
+                  view: tab === "已安装" ? "installed" : "market",
+                  tag: "",
+                })
+              }
+              onTagChange={(tag) => navigate({ view: "market", tag })}
               onInstall={installer.openInstaller}
               onRefreshApps={() => void catalog.refresh()}
               onRefreshContainers={() => void docker.refresh()}

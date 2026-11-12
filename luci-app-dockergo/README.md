@@ -4,6 +4,8 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 
 应用市场字段、安装请求参数、默认值和当前限制详见 [参数说明](../docs/parameters.md)。
 
+前端使用 Hash 路由保存已安装 / 应用市场视图和标签筛选，刷新、前进和后退均保留 URL 对应的状态；无需修改 LuCI 服务端路由。市场标签选项从目录 `tags` 动态生成。
+
 ## JSON API
 
 接口前缀：`/cgi-bin/luci/admin/services/dockergo/api`
