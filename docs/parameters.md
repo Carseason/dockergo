@@ -175,7 +175,7 @@ schemaVersion: 1
 apps:
   - id: nginx
     title: Nginx
-    version: "latest"
+    version: "20261113"
     description: 高性能 HTTP 服务器与反向代理服务器
     tags: [网络, Web, 反向代理]
     image: "nginx:latest"
