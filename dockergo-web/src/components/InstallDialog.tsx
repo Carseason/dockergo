@@ -6,6 +6,7 @@ import {
   X,
 } from "@phosphor-icons/react"
 import { useEffect, useRef, useState } from "react"
+import { getDockerRunPreview } from "../dockerCommand"
 import type { CatalogApp, InstallConfiguration } from "../types"
 import { DirectoryPickerDialog } from "./DirectoryPickerDialog"
 
@@ -253,10 +254,14 @@ export function InstallDialog({
           )}
 
           <div className="install-summary">
-            <div>
-              <span>容器镜像</span>
-              <strong>{app.image}</strong>
-            </div>
+            <span>Docker 运行命令预览</span>
+            <pre>
+              <code>{getDockerRunPreview(app, configuration)}</code>
+            </pre>
+            <small>
+              实例 ID
+              将在提交时由系统生成。命令随当前配置更新，运行前请填写必填项。
+            </small>
           </div>
 
           <button

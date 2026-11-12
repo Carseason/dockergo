@@ -1911,18 +1911,8 @@ main {
   padding: 14px 18px;
   border-radius: 10px;
   background: #f3f6fa;
-  display: flex;
-  justify-content: space-around;
   text-align: left;
-}
-
-.install-summary div {
-  min-width: 100px;
-}
-
-.install-summary span,
-.install-summary strong {
-  display: block;
+  min-width: 0;
 }
 
 .install-summary span {
@@ -1930,10 +1920,25 @@ main {
   font-size: 11px;
 }
 
-.install-summary strong {
-  margin-top: 4px;
+.install-summary pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 8px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   color: #28354c;
   font-size: 13px;
+  line-height: 1.6;
+  user-select: text;
+}
+
+.install-summary code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.install-summary small {
+  color: #69758a;
+  line-height: 1.5;
 }
 
 .primary-button {
