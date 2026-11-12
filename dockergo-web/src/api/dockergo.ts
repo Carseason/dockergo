@@ -19,6 +19,7 @@ import type {
 declare global {
   interface Window {
     DockerGoConfig?: {
+      pageBase?: string
       apiBase: string
       csrfToken: string
     }

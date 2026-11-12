@@ -11,5 +11,18 @@
 				"/usr/bin/docker": "executable"
 			}
 		}
+	},
+	"admin/services/dockergo/installed": {
+		"action": {
+			"type": "view",
+			"path": "dockergo/index"
+		}
+	},
+	"admin/services/dockergo/market": {
+		"wildcard": true,
+		"action": {
+			"type": "view",
+			"path": "dockergo/index"
+		}
 	}
 }

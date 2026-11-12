@@ -50,7 +50,7 @@
 
 `version` 不会自动改写 `image` 的标签。例如只修改 `version` 而不修改 `image`，实际拉取的镜像仍由 `image` 决定。目录版本变化也不会更新已创建的容器。
 
-市场按一个标签精确筛选，选择“全部”时显示所有应用。视图与筛选分别写入 Hash 路由 `#/installed`、`#/market`、`#/market?tag=Web`，中文标签自动编码；刷新页面会恢复选择，前进、后退也会同步显示。无路由或未知路径默认显示已安装，未知标签显示空结果。路由切换不重新加载应用目录或容器数据。
+市场按一个标签精确筛选，选择“全部”时显示所有应用。视图与筛选使用 History 路径路由：在 LuCI 基础路径 `/cgi-bin/luci/admin/services/dockergo` 下追加 `/installed`、`/market` 或 `/market/tag/t-576562`（`Web` 标签）。标签转为带 `t-` 前缀的 UTF-8 十六进制 ASCII 标识，前端还原显示，避免 LuCI 登录重定向过滤中文和特殊字符路径段；不使用 Hash 或查询参数保存路由。插件注册对应的 LuCI 页面入口，刷新及重新登录后均可返回同一路径，前进、后退也同步显示。根页面或未知前端路径默认显示已安装，未知标签显示空结果。路由切换不重新加载应用目录或容器数据。
 
 表中的字段是当前维护格式；不要依赖后端对不规范数据的宽松接受。例如应用 ID 的字符限制在安装阶段检查，`tags` 的每个元素当前没有经过后端严格字符串校验。写目录时仍应遵守表格中的类型和约束。
 
@@ -288,6 +288,7 @@ ID 和版本都可能包含下划线。后端枚举合法拆分，只有唯一�
 | `VITE_DOCKERGO_API_URL` | 前端构建环境变量 | API 前缀；默认 `/cgi-bin/luci/admin/services/dockergo/api` |
 | `VITE_DOCKERGO_CSRF_TOKEN` | 前端构建环境变量 | 独立开发时使用的会话 CSRF token；不要提交真实值 |
 | `window.DockerGoConfig.apiBase` | LuCI 挂载页面注入 | 优先于 `VITE_DOCKERGO_API_URL` 的 API 前缀 |
+| `window.DockerGoConfig.pageBase` | LuCI 挂载页面注入 | History 页面路由基础路径，与 API 前缀分开；旧挂载页未注入时从 `apiBase` 推导 |
 | `window.DockerGoConfig.csrfToken` | LuCI 挂载页面注入 | 优先于环境变量的会话 token |
 
 Vite 开发和预览服务当前监听 `0.0.0.0:37001`，配置位于 `dockergo-web/vite.config.ts`。这不改变 LuCI 服务端口，也不改变应用的 Docker 端口映射。

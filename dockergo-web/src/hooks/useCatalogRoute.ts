@@ -6,19 +6,41 @@ import {
 } from "../catalogRoute"
 
 function subscribe(onChange: () => void) {
-  window.addEventListener("hashchange", onChange)
-  return () => window.removeEventListener("hashchange", onChange)
+  window.addEventListener("popstate", onChange)
+  window.addEventListener("dockergo:navigate", onChange)
+  return () => {
+    window.removeEventListener("popstate", onChange)
+    window.removeEventListener("dockergo:navigate", onChange)
+  }
 }
 
 function getSnapshot() {
-  return window.location.hash
+  return window.location.pathname
+}
+
+function getBasePath() {
+  const config = window.DockerGoConfig
+  if (config?.pageBase)
+    return new URL(config.pageBase, window.location.href).pathname
+  if (config?.apiBase)
+    return new URL(config.apiBase, window.location.href).pathname.replace(
+      /\/api\/?$/,
+      "",
+    )
+  return ""
 }
 
 export function useCatalogRoute() {
-  const hash = useSyncExternalStore(subscribe, getSnapshot)
+  const pathname = useSyncExternalStore(subscribe, getSnapshot)
   const navigate = useCallback((route: CatalogRoute) => {
-    const nextHash = formatCatalogRoute(route)
-    if (window.location.hash !== nextHash) window.location.hash = nextHash
+    const nextPath = formatCatalogRoute(route, getBasePath())
+    if (window.location.pathname !== nextPath) {
+      const url = new URL(window.location.href)
+      url.pathname = nextPath
+      url.hash = ""
+      window.history.pushState(window.history.state, "", url)
+      window.dispatchEvent(new Event("dockergo:navigate"))
+    }
   }, [])
-  return { route: parseCatalogRoute(hash), navigate }
+  return { route: parseCatalogRoute(pathname, getBasePath()), navigate }
 }
