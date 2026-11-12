@@ -29,7 +29,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 `file`，`desc` 用于说明映射用途；宿主机路径由用户安装时提供，不存入应用目录。
 应用使用 `d`（默认 `true`）控制后台运行，`rm`（默认 `false`）控制退出后自动清理，
 `restart`（默认 `"no"`）控制重启策略，支持 `no`、`always`、`unless-stopped`、`on-failure`。
-表单提供重启策略下拉框；`rm: true` 时固定为 `no`，后端拒绝冲突组合。
+`rm: false` 时表单提供重启策略下拉框；`rm: true` 时隐藏该选项并固定为 `no`，后端拒绝冲突组合。
 旧字段 `mode`、`autoStart` 已移除，继续声明会导致目录校验失败。
 
 例如 gallery-dl 使用 `d: false`、`rm: true`、`restart: "no"`，通过附加模式等待本次命令结束，

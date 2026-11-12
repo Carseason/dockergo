@@ -227,34 +227,30 @@ export function InstallDialog({
             )
           })}
 
-          <div className="form-group">
-            <label htmlFor="restart-policy">重启策略</label>
-            <select
-              id="restart-policy"
-              className="task-input"
-              disabled={submitting || app.rm}
-              value={configuration.restart}
-              onChange={(event) =>
-                onConfigurationChange({
-                  restart: event.target
-                    .value as InstallConfiguration["restart"],
-                })
-              }
-            >
-              <option value="no">不自动重启（no）</option>
-              <option value="always">始终重启（always）</option>
-              <option value="unless-stopped">
-                除非手动停止（unless-stopped）
-              </option>
-              <option value="on-failure">失败时重启（on-failure）</option>
-            </select>
-            {app.rm && (
-              <small>
-                退出后自动删除容器，重启策略固定为
-                no；请将需要保留的数据映射到宿主机。
-              </small>
-            )}
-          </div>
+          {!app.rm && (
+            <div className="form-group">
+              <label htmlFor="restart-policy">重启策略</label>
+              <select
+                id="restart-policy"
+                className="task-input"
+                disabled={submitting}
+                value={configuration.restart}
+                onChange={(event) =>
+                  onConfigurationChange({
+                    restart: event.target
+                      .value as InstallConfiguration["restart"],
+                  })
+                }
+              >
+                <option value="no">不自动重启（no）</option>
+                <option value="always">始终重启（always）</option>
+                <option value="unless-stopped">
+                  除非手动停止（unless-stopped）
+                </option>
+                <option value="on-failure">失败时重启（on-failure）</option>
+              </select>
+            </div>
+          )}
 
           <div className="install-summary">
             <div>
