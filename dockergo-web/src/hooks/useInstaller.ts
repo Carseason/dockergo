@@ -6,6 +6,7 @@ import type { CatalogApp, InstallConfiguration } from "../types"
 function getDefaultConfiguration(app: CatalogApp): InstallConfiguration {
   return {
     instanceId: createInstanceId(),
+    startNow: true,
     ports: app.ports.map((port) => String(port.port)),
     volumes: app.volumes.map(() => ""),
     inputs: Object.fromEntries(app.inputs.map((input) => [input.id, ""])),
@@ -47,6 +48,7 @@ export function useInstaller() {
         taskId: response.taskId,
         appTitle: selectedApp.title,
         containerName: response.containerName,
+        startNow: configuration.startNow,
         d: selectedApp.d,
         rm: selectedApp.rm,
       }

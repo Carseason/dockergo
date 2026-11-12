@@ -337,6 +337,7 @@ export function installCatalogApp(
     body: new URLSearchParams({
       appId,
       instanceId: configuration.instanceId,
+      startNow: configuration.startNow ? "1" : "0",
       ports: JSON.stringify(configuration.ports),
       volumes: JSON.stringify(configuration.volumes),
       inputs: JSON.stringify(configuration.inputs),

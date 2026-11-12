@@ -115,11 +115,13 @@ export function InstallDialog({
           {app.title}
         </h2>
         <p>
-          {isTask
-            ? app.d
-              ? "配置完成后后台启动，容器退出后自动清理。"
-              : "填写运行参数与存储目录，系统任务将等待运行结束并显示输出。"
-            : "配置端口与持久化目录，确认后将在系统任务窗口中显示安装日志。"}
+          {!configuration.startNow
+            ? "确认后仅创建容器，稍后可在已安装应用中手动启动。"
+            : isTask
+              ? app.d
+                ? "配置完成后后台启动，容器退出后自动清理。"
+                : "填写运行参数与存储目录，系统任务将等待运行结束并显示输出。"
+              : "配置端口与持久化目录，确认后将在系统任务窗口中显示安装日志。"}
         </p>
 
         <form
@@ -228,6 +230,22 @@ export function InstallDialog({
             )
           })}
 
+          <div className="form-group">
+            <label className="start-option" htmlFor="start-now">
+              <input
+                id="start-now"
+                type="checkbox"
+                checked={configuration.startNow}
+                disabled={submitting}
+                onChange={(event) =>
+                  onConfigurationChange({ startNow: event.target.checked })
+                }
+              />
+              <span>立即启动</span>
+            </label>
+            <small>取消勾选则仅创建容器，不执行容器内的命令。</small>
+          </div>
+
           {!app.rm && (
             <div className="form-group">
               <label htmlFor="restart-policy">重启策略</label>
@@ -254,7 +272,7 @@ export function InstallDialog({
           )}
 
           <div className="install-summary">
-            <span>Docker 运行命令预览</span>
+            <span>Docker 命令预览</span>
             <pre>
               <code>{getDockerRunPreview(app, configuration)}</code>
             </pre>
@@ -271,18 +289,22 @@ export function InstallDialog({
           >
             {submitting ? (
               <SpinnerGap className="is-spinning" size={17} />
-            ) : isTask ? (
+            ) : configuration.startNow && isTask ? (
               <Play size={17} weight="fill" />
             ) : (
               <DownloadSimple size={17} weight="bold" />
             )}
-            {submitting
-              ? isTask
-                ? "正在创建运行任务"
-                : "正在创建安装任务"
-              : isTask
-                ? "确认配置并运行"
-                : "确认配置并安装"}
+            {!configuration.startNow
+              ? submitting
+                ? "正在创建容器任务"
+                : "确认配置并创建"
+              : submitting
+                ? isTask
+                  ? "正在创建运行任务"
+                  : "正在创建安装任务"
+                : isTask
+                  ? "确认配置并运行"
+                  : "确认配置并安装"}
           </button>
         </form>
       </section>

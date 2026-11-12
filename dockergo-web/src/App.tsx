@@ -89,16 +89,22 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
         if (exitCode === 0) {
           showToast(
             "success",
-            task.d ? "容器已启动" : "本次运行已结束",
-            task.d
-              ? `${task.appTitle} 已在后台启动${
-                  task.rm ? "，退出后自动清理" : ""
-                }`
-              : `${task.appTitle} 本次运行已结束${
-                  task.rm
-                    ? "，容器已自动清理"
-                    : "，容器已保留；后续是否重启取决于重启策略"
-                }`,
+            !task.startNow
+              ? "容器已创建"
+              : task.d
+                ? "容器已启动"
+                : "本次运行已结束",
+            !task.startNow
+              ? `${task.appTitle} 已创建为 ${task.containerName}，尚未启动`
+              : task.d
+                ? `${task.appTitle} 已在后台启动${
+                    task.rm ? "，退出后自动清理" : ""
+                  }`
+                : `${task.appTitle} 本次运行已结束${
+                    task.rm
+                      ? "，容器已自动清理"
+                      : "，容器已保留；后续是否重启取决于重启策略"
+                  }`,
           )
         } else {
           showToast(

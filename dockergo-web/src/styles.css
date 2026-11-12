@@ -1762,6 +1762,20 @@ main {
   font-size: 11px;
 }
 
+.form-group .start-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.start-option input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--blue);
+}
+
 .port-mappings {
   display: grid;
   gap: 12px;

@@ -11,14 +11,14 @@ export function getDockerRunPreview(
 ): string {
   const args = [
     "docker",
-    "run",
+    configuration.startNow ? "run" : "create",
     "--name",
     `dgo_${app.id}_${app.version}_${configuration.instanceId}`,
   ]
 
   if (app.rm) args.push("--rm")
   else args.push("--restart", configuration.restart)
-  if (app.d) args.push("--detach")
+  if (configuration.startNow && app.d) args.push("--detach")
 
   app.ports.forEach((port, index) => {
     const hostPort = configuration.ports[index] || "<宿主机端口>"

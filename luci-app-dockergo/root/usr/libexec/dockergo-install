@@ -28,6 +28,7 @@ if type(config) ~= "table" or type(config.appId) ~= "string" or
 	type(config.title) ~= "string" or type(config.version) ~= "string" or
 	type(config.instanceId) ~= "string" or type(config.image) ~= "string" or
 	type(config.containerName) ~= "string" or
+	type(config.startNow) ~= "boolean" or
 	type(config.d) ~= "boolean" or type(config.rm) ~= "boolean" or
 	(config.restart ~= "no" and config.restart ~= "always" and
 		config.restart ~= "unless-stopped" and config.restart ~= "on-failure") or
@@ -129,7 +130,7 @@ if not execute("[镜像] 拉取 " .. config.image,
 end
 
 local run = {
-	"docker", "run",
+	"docker", config.startNow and "run" or "create",
 	"--name", config.containerName,
 }
 
@@ -139,7 +140,7 @@ else
 	run[#run + 1] = "--restart"
 	run[#run + 1] = config.restart
 end
-if config.d then
+if config.startNow and config.d then
 	run[#run + 1] = "--detach"
 end
 
@@ -161,12 +162,14 @@ for _, argument in ipairs(config.command or {}) do
 	run[#run + 1] = argument
 end
 
-if not execute("[容器] 运行 " .. config.containerName, run) then
-	print("[错误] 容器运行失败，请检查上方输出、端口、目录和镜像配置")
+if not execute((config.startNow and "[容器] 运行 " or "[容器] 创建 ") .. config.containerName, run) then
+	print("[错误] 容器创建或运行失败，请检查上方输出、端口、目录和镜像配置")
 	os.exit(1)
 end
 
-if not config.d then
+if not config.startNow then
+	print(string.format("[完成] %s 已创建但未启动，容器名称：%s", config.title, config.containerName))
+elseif not config.d then
 	print(string.format("[完成] %s 本次运行已结束%s", config.title,
 		config.rm and "，容器已自动清理" or "，后续是否重启取决于重启策略"))
 else

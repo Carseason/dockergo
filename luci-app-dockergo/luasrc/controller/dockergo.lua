@@ -379,6 +379,11 @@ function api_install_app()
 		write_error(400, "INVALID_INSTANCE_ID", "实例 ID 必须为 8 位小写十六进制字符")
 		return
 	end
+	local start_now = http.formvalue("startNow")
+	if start_now ~= nil and start_now ~= "0" and start_now ~= "1" then
+		write_error(400, "INVALID_START_OPTION", "立即启动选项必须为 1 或 0")
+		return
+	end
 
 	local catalog, status, code, message = load_catalog()
 	if not catalog then
@@ -480,6 +485,7 @@ function api_install_app()
 		rm = app.rm == true,
 		restart = restart,
 		instanceId = instance_id,
+		startNow = start_now ~= "0",
 		containerName = "dgo_" .. app.id .. "_" .. app.version .. "_" .. instance_id,
 		environment = environment,
 		command = command,
