@@ -16,8 +16,6 @@ export function getDockerRunPreview(
     "run",
     "--name",
     `dgo_${app.id}_${app.version}_${instanceId}`,
-    "--network",
-    "dockergo_default",
   ]
 
   if (app.rm) args.push("--rm")

@@ -90,15 +90,6 @@ end
 
 print(string.format("[准备] 正在安装 %s", config.title))
 
-if not execute("[网络] 检查 DockerGo 专用网络",
-	{"/usr/bin/docker", "network", "inspect", "dockergo_default"}, true) then
-	if not execute("[网络] 创建 DockerGo 专用网络",
-		{"/usr/bin/docker", "network", "create", "dockergo_default"}) then
-		print("[错误] 无法创建 DockerGo 专用网络")
-		os.exit(1)
-	end
-end
-
 for index, volume in ipairs(volumes) do
 	local volume_type = volume.type
 
@@ -140,7 +131,6 @@ end
 local run = {
 	"/usr/bin/docker", "container", "run",
 	"--name", config.containerName,
-	"--network", "dockergo_default",
 }
 
 if config.rm then
