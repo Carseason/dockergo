@@ -18,7 +18,7 @@ export type CatalogInput = {
   placeholder: string
 }
 
-export type CatalogMode = "service" | "task"
+export type RestartPolicy = "no" | "always" | "unless-stopped" | "on-failure"
 
 export type CatalogApp = {
   id: string
@@ -27,13 +27,14 @@ export type CatalogApp = {
   description: string
   tags: string[]
   image: string
-  mode: CatalogMode
+  d: boolean
+  rm: boolean
+  restart: RestartPolicy
   ports: CatalogPort[]
   volumes: CatalogVolume[]
   inputs: CatalogInput[]
   environment: Record<string, string>
   command: string[]
-  autoStart?: boolean
 }
 
 export type CatalogResponse = {
@@ -57,7 +58,6 @@ export type DockerContainer = {
   appId: string
   appVersion: string
   instanceId: string
-  mode: CatalogMode | ""
 }
 
 export type DockerApiError = {
@@ -158,7 +158,7 @@ export type InstallConfiguration = {
   volumes: string[]
   inputs: Record<string, string>
   startNow: boolean
-  autoStart: boolean
+  restart: RestartPolicy
 }
 
 export type DockerInstallResponse = {

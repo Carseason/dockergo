@@ -110,7 +110,7 @@ export function ContainerCard({
   const state = container.state.toLowerCase() || "unknown"
   const control = getContainerAction(
     state,
-    container.mode === "task" || catalogApp?.mode === "task",
+    Boolean(catalogApp && (!catalogApp.d || catalogApp.rm)),
   )
   const publishedPorts = getPublishedPorts(container.ports)
   const initial = getContainerInitial(container)

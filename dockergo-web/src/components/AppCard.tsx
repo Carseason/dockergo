@@ -37,9 +37,9 @@ export function AppCard({ app, onInstall }: AppCardProps) {
             </span>
           ))}
         </div>
-        {app.mode === "task" ? (
+        {app.rm || !app.d ? (
           <p className="app-card__stats">
-            <span>一次性任务</span>
+            <span>{app.rm ? "退出后自动清理" : "前台运行"}</span>
           </p>
         ) : app.command.length > 0 ? (
           <p className="app-card__stats">
@@ -52,12 +52,12 @@ export function AppCard({ app, onInstall }: AppCardProps) {
             className="install-button"
             onClick={() => onInstall(app)}
           >
-            {app.mode === "task" ? (
+            {app.rm || !app.d ? (
               <Play size={15} weight="fill" />
             ) : (
               <DownloadSimple size={15} weight="bold" />
             )}
-            {app.mode === "task" ? "运行" : "安装"}
+            {app.rm || !app.d ? "运行" : "安装"}
           </button>
         </div>
       </div>

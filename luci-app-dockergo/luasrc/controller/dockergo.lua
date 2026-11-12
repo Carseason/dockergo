@@ -13,6 +13,10 @@ local INSTALL_TASK_DIR = "/var/run/dockergo"
 local INSTALL_TASK_ID = "dockergo"
 local INSTALL_RUNNER = "/usr/libexec/dockergo-install"
 
+local function valid_restart(value)
+	return value == "no" or value == "always" or value == "unless-stopped" or value == "on-failure"
+end
+
 function index()
 	entry({"admin", "services", "dockergo", "api", "catalog"}, call("api_catalog")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "files"}, call("api_list_files")).leaf = true
@@ -80,9 +84,15 @@ local function valid_catalog(catalog)
 		end
 		ids[app.id] = true
 
-		local mode = app.mode or "service"
-		if mode ~= "service" and mode ~= "task" then
-			return false, string.format("应用 %s 的运行模式无效", app.id)
+		if app.mode ~= nil or app.autoStart ~= nil then
+			return false, string.format("应用 %s 请使用 d、rm、restart 代替 mode、autoStart", app.id)
+		end
+		if (app.d ~= nil and type(app.d) ~= "boolean") or
+			(app.rm ~= nil and type(app.rm) ~= "boolean") or
+			(app.restart ~= nil and type(app.restart) ~= "string") or
+			not valid_restart(app.restart or "no") or
+			(app.rm == true and (app.restart or "no") ~= "no") then
+			return false, string.format("应用 %s 的运行或重启配置无效", app.id)
 		end
 
 		if app.ports ~= nil and type(app.ports) ~= "table" then
@@ -134,9 +144,6 @@ local function valid_catalog(catalog)
 			end
 			input_ids[input.id] = true
 		end
-		if mode ~= "task" and next(input_ids) ~= nil then
-			return false, string.format("应用 %s 仅任务模式可声明运行参数", app.id)
-		end
 		local used_inputs = {}
 		for _, argument in ipairs(app.command or {}) do
 			if type(argument) ~= "string" then
@@ -156,12 +163,6 @@ local function valid_catalog(catalog)
 			if not used_inputs[input_id] then
 				return false, string.format("应用 %s 存在未使用的运行参数", app.id)
 			end
-		end
-		if app.autoStart ~= nil and type(app.autoStart) ~= "boolean" then
-			return false, string.format("应用 %s 的自动启动配置无效", app.id)
-		end
-		if mode == "task" and app.autoStart ~= nil then
-			return false, string.format("任务应用 %s 不能声明自动启动", app.id)
 		end
 	end
 
@@ -394,7 +395,11 @@ function api_install_app()
 		write_error(404, "APP_NOT_FOUND", "应用目录中不存在该应用")
 		return
 	end
-	local mode = app.mode or "service"
+	local restart = http.formvalue("restart") or app.restart or "no"
+	if not valid_restart(restart) or (app.rm == true and restart ~= "no") then
+		write_error(400, "INVALID_RESTART", "重启策略无效，自动清理容器只能使用 no")
+		return
+	end
 
 	local ports = app.ports or {}
 	local volumes = app.volumes or {}
@@ -482,12 +487,12 @@ function api_install_app()
 		title = app.title,
 		version = app.version,
 		image = app.image,
-		mode = mode,
+		d = app.d ~= false,
+		rm = app.rm == true,
+		restart = restart,
 		instanceId = suffix,
 		containerName = "dgo_" .. app.id .. "_" .. app.version .. "_" .. suffix,
-		startNow = mode == "task" or start_now ~= "0",
-		autoStart = mode == "service" and type(app.autoStart) == "boolean" and
-			http.formvalue("autoStart") == "1",
+		startNow = start_now ~= "0",
 		environment = environment,
 		command = command,
 		ports = task_ports,
@@ -563,7 +568,6 @@ local function normalize_container(raw)
 		appId = container_label(labels, "io.dockergo.app-id"),
 		appVersion = container_label(labels, "io.dockergo.app-version"),
 		instanceId = container_label(labels, "io.dockergo.instance-id"),
-		mode = container_label(labels, "io.dockergo.mode"),
 	}
 end
 

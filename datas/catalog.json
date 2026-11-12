@@ -8,7 +8,9 @@
       "description": "高性能 HTTP 服务器与反向代理服务器",
       "tags": ["网络", "Web", "反向代理"],
       "image": "nginx:1.30.5-alpine",
-      "autoStart": true,
+      "d": true,
+      "rm": false,
+      "restart": "unless-stopped",
       "ports": [
         {
           "port": 8080,
@@ -24,7 +26,9 @@
       "description": "支持多个图片与媒体站点的命令行下载工具",
       "tags": ["下载", "图片", "媒体"],
       "image": "ghcr.io/mikf/gallery-dl:v1.32.19",
-      "mode": "task",
+      "d": false,
+      "rm": true,
+      "restart": "no",
       "inputs": [
         {
           "id": "url",
@@ -38,7 +42,8 @@
         {
           "target": "/gallery-dl",
           "type": "dir",
-          "desc": "下载目录"
+          "desc": "下载目录",
+          "required": true
         }
       ]
     }

@@ -9,7 +9,9 @@ apps:
       - Web
       - 反向代理
     image: "nginx:1.30.5-alpine"
-    autoStart: true
+    d: true
+    rm: false
+    restart: unless-stopped
     ports:
       - port: 8080
         target: 80
@@ -24,7 +26,9 @@ apps:
       - 图片
       - 媒体
     image: "ghcr.io/mikf/gallery-dl:v1.32.19"
-    mode: task
+    d: false
+    rm: true
+    restart: "no"
     inputs:
       - id: url
         title: 下载地址
@@ -38,3 +42,4 @@ apps:
       - target: /gallery-dl
         type: dir
         desc: 下载目录
+        required: true

@@ -33,7 +33,7 @@ export function InstallDialog({
     null,
   )
   const mark = Array.from(app.title.trim())[0]?.toLocaleUpperCase() || "?"
-  const isTask = app.mode === "task"
+  const isTask = app.rm || !app.d
   const isValid =
     configuration.ports.length === app.ports.length &&
     configuration.ports.every((port) => port.length > 0) &&
@@ -115,7 +115,9 @@ export function InstallDialog({
         </h2>
         <p>
           {isTask
-            ? "填写运行参数与存储目录，任务输出将在系统任务窗口中实时显示。"
+            ? app.d
+              ? "配置完成后后台启动，容器退出后自动清理。"
+              : "填写运行参数与存储目录，系统任务将等待运行结束并显示输出。"
             : "配置端口与持久化目录，确认后将在系统任务窗口中显示安装日志。"}
         </p>
 
@@ -225,41 +227,50 @@ export function InstallDialog({
             )
           })}
 
-          {!isTask && (
-            <div className="install-options">
-              <label>
-                <input
-                  type="checkbox"
-                  disabled={submitting}
-                  checked={configuration.startNow}
-                  onChange={(event) =>
-                    onConfigurationChange({ startNow: event.target.checked })
-                  }
-                />
-                <span>
-                  <strong>立即启动</strong>
-                  <small>安装完成后立即启动容器</small>
-                </span>
-              </label>
-
-              {app.autoStart !== undefined && (
-                <label>
-                  <input
-                    type="checkbox"
-                    disabled={submitting}
-                    checked={configuration.autoStart}
-                    onChange={(event) =>
-                      onConfigurationChange({ autoStart: event.target.checked })
-                    }
-                  />
-                  <span>
-                    <strong>自动启动</strong>
-                    <small>Docker 启动时自动运行应用</small>
-                  </span>
-                </label>
-              )}
-            </div>
-          )}
+          <div className="install-options">
+            <label>
+              <input
+                type="checkbox"
+                disabled={submitting}
+                checked={configuration.startNow}
+                onChange={(event) =>
+                  onConfigurationChange({ startNow: event.target.checked })
+                }
+              />
+              <span>
+                <strong>立即启动</strong>
+                <small>安装完成后立即启动容器</small>
+              </span>
+            </label>
+          </div>
+          <div className="form-group">
+            <label htmlFor="restart-policy">重启策略</label>
+            <select
+              id="restart-policy"
+              className="task-input"
+              disabled={submitting || app.rm}
+              value={configuration.restart}
+              onChange={(event) =>
+                onConfigurationChange({
+                  restart: event.target
+                    .value as InstallConfiguration["restart"],
+                })
+              }
+            >
+              <option value="no">不自动重启（no）</option>
+              <option value="always">始终重启（always）</option>
+              <option value="unless-stopped">
+                除非手动停止（unless-stopped）
+              </option>
+              <option value="on-failure">失败时重启（on-failure）</option>
+            </select>
+            {app.rm && (
+              <small>
+                退出后自动删除容器，重启策略固定为
+                no；请将需要保留的数据映射到宿主机。
+              </small>
+            )}
+          </div>
 
           <div className="install-summary">
             <div>

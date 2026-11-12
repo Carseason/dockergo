@@ -28,8 +28,10 @@ if type(config) ~= "table" or type(config.appId) ~= "string" or
 	type(config.title) ~= "string" or type(config.version) ~= "string" or
 	type(config.instanceId) ~= "string" or type(config.image) ~= "string" or
 	type(config.containerName) ~= "string" or type(config.startNow) ~= "boolean" or
-	type(config.autoStart) ~= "boolean" or
-	(config.mode ~= "service" and config.mode ~= "task") then
+	type(config.d) ~= "boolean" or type(config.rm) ~= "boolean" or
+	(config.restart ~= "no" and config.restart ~= "always" and
+		config.restart ~= "unless-stopped" and config.restart ~= "on-failure") or
+	(config.rm and config.restart ~= "no") then
 	print("[错误] 安装任务配置无效")
 	os.exit(2)
 end
@@ -142,10 +144,15 @@ local create = {
 	"--label", "io.dockergo.app-id=" .. config.appId,
 	"--label", "io.dockergo.app-version=" .. config.version,
 	"--label", "io.dockergo.instance-id=" .. config.instanceId,
-	"--label", "io.dockergo.mode=" .. config.mode,
 	"--network", "dockergo_default",
-	"--restart", config.mode == "service" and config.autoStart and "unless-stopped" or "no",
 }
+
+if config.rm then
+	create[#create + 1] = "--rm"
+else
+	create[#create + 1] = "--restart"
+	create[#create + 1] = config.restart
+end
 
 for _, port in ipairs(ports) do
 	create[#create + 1] = "--publish"
@@ -170,20 +177,21 @@ if not execute("[容器] 创建 " .. config.containerName, create) then
 	os.exit(1)
 end
 
-if config.mode == "task" then
+if not config.startNow then
+	print(string.format("[完成] %s 已创建但未启动，容器名称：%s", config.title, config.containerName))
+elseif not config.d then
 	if not execute("[任务] 运行 " .. config.containerName,
 		{"/usr/bin/docker", "container", "start", "--attach", config.containerName}) then
 		print("[错误] 任务执行失败，请查看上方输出")
 		os.exit(1)
 	end
-	print(string.format("[完成] %s 运行完成，容器名称：%s", config.title, config.containerName))
-elseif config.startNow then
+	print(string.format("[完成] %s 本次运行已结束%s", config.title,
+		config.rm and "，容器已自动清理" or "，后续是否重启取决于重启策略"))
+else
 	if not execute("[容器] 启动 " .. config.containerName,
 		{"/usr/bin/docker", "container", "start", config.containerName}) then
 		print("[错误] 容器启动失败")
 		os.exit(1)
 	end
 	print(string.format("[完成] %s 已安装并启动，容器名称：%s", config.title, config.containerName))
-else
-	print(string.format("[完成] %s 已安装但未启动，容器名称：%s", config.title, config.containerName))
 end

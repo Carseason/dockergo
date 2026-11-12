@@ -89,18 +89,28 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
         if (exitCode === 0) {
           showToast(
             "success",
-            task.mode === "task" ? "任务执行完成" : "部署任务已完成",
-            task.mode === "task"
-              ? `${task.appTitle} 已运行完成，容器 ${task.containerName} 已保留`
-              : `${task.appTitle} 已安装为容器 ${task.containerName}`,
+            !task.startNow
+              ? "应用已创建"
+              : task.d
+                ? "容器已启动"
+                : "本次运行已结束",
+            !task.startNow
+              ? `${task.appTitle} 已创建为容器 ${task.containerName}，尚未启动`
+              : task.d
+                ? `${task.appTitle} 已在后台启动${
+                    task.rm ? "，退出后自动清理" : ""
+                  }`
+                : `${task.appTitle} 本次运行已结束${
+                    task.rm
+                      ? "，容器已自动清理"
+                      : "，容器已保留；后续是否重启取决于重启策略"
+                  }`,
           )
         } else {
           showToast(
             "error",
-            task.mode === "task" ? "任务执行失败" : "应用安装失败",
-            `${task.appTitle} ${
-              task.mode === "task" ? "运行" : "安装"
-            }任务退出，错误码 ${exitCode}`,
+            "部署或运行失败",
+            `${task.appTitle} 任务退出，错误码 ${exitCode}，请查看系统任务日志`,
           )
         }
       })

@@ -146,13 +146,14 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
   ) {
     return null
   }
-  if (value.autoStart !== undefined && typeof value.autoStart !== "boolean") {
-    return null
-  }
   if (
-    value.mode !== undefined &&
-    value.mode !== "service" &&
-    value.mode !== "task"
+    value.mode !== undefined ||
+    value.autoStart !== undefined ||
+    (value.d !== undefined && typeof value.d !== "boolean") ||
+    (value.rm !== undefined && typeof value.rm !== "boolean") ||
+    (value.restart !== undefined &&
+      (typeof value.restart !== "string" ||
+        !["no", "always", "unless-stopped", "on-failure"].includes(value.restart)))
   ) {
     return null
   }
@@ -196,10 +197,11 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
       return null
     }
   }
-  const mode = value.mode === "task" ? "task" : "service"
+  const d = value.d !== false
+  const rm = value.rm === true
+  const restart = value.restart ?? "no"
   if (
-    (mode !== "task" && inputs.length > 0) ||
-    (mode === "task" && value.autoStart !== undefined) ||
+    (rm && restart !== "no") ||
     inputs.some((input) => !usedInputs.has(input.id))
   ) {
     return null
@@ -212,14 +214,14 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
     description,
     tags,
     image,
-    mode,
+    d,
+    rm,
+    restart: restart as CatalogApp["restart"],
     ports,
     volumes,
     inputs,
     environment,
     command,
-    autoStart:
-      typeof value.autoStart === "boolean" ? value.autoStart : undefined,
   }
 }
 
@@ -338,7 +340,7 @@ export function installCatalogApp(
       volumes: JSON.stringify(configuration.volumes),
       inputs: JSON.stringify(configuration.inputs),
       startNow: configuration.startNow ? "1" : "0",
-      autoStart: configuration.autoStart ? "1" : "0",
+      restart: configuration.restart,
       token: csrfToken,
     }),
   })
