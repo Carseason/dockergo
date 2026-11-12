@@ -154,6 +154,7 @@ export type DockerContainerRemoveResponse = {
 }
 
 export type InstallConfiguration = {
+  instanceId: string
   ports: string[]
   volumes: string[]
   inputs: Record<string, string>

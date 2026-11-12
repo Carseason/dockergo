@@ -9,12 +9,11 @@ export function getDockerRunPreview(
   app: CatalogApp,
   configuration: InstallConfiguration,
 ): string {
-  const instanceId = "<实例ID>"
   const args = [
     "docker",
     "run",
     "--name",
-    `dgo_${app.id}_${app.version}_${instanceId}`,
+    `dgo_${app.id}_${app.version}_${configuration.instanceId}`,
   ]
 
   if (app.rm) args.push("--rm")

@@ -45,7 +45,9 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 通过应用市场创建的容器使用 `dgo_<应用 ID>_<版本>_<8位实例 ID>` 命名，不添加或读取 DockerGo 标签。
 列表接口从名称解析 `managed`、`appId`、`appVersion`、`instanceId`，前端据此筛选和关联目录信息。
 ID 或版本包含下划线时优先使用唯一的目录 ID 匹配，存在歧义则保留卡片但不关联应用，详见参数文档。
-实例 ID 保证同一应用和版本可以创建多个容器；已有容器不重建，旧标签不修改。
+实例 ID 在打开创建弹窗时由前端生成，修改配置和失败重试时不变，预览直接显示完整容器名称。
+安装请求必须提交 `instanceId`，后端校验 8 位小写十六进制格式并自行拼接名称；同名容器存在时返回 `409 CONTAINER_NAME_CONFLICT`，不会静默更换 ID。
+同一应用和版本可以创建多个实例；已有容器不重建，旧标签不修改。
 
 `control` 接收 `application/x-www-form-urlencoded` 参数：
 
@@ -55,7 +57,7 @@ ID 或版本包含下划线时优先使用唯一的目录 ID 匹配，存在歧�
 
 `remove` 接收同样格式的 `id` 和 `token` 参数。该操作只删除容器，保留镜像和数据卷。
 
-`install` 接收 `appId`、`ports`、`volumes`、`inputs`、`restart` 和 `token`，确认配置后统一执行 `docker run`，不再提供“立即启动”开关或只创建容器的分支。`d: true` 添加 `--detach`，`d: false` 等待本次运行结束；已安装容器再次启动仍使用 `docker start`。`inputs` 是键值均为字符串的 JSON 对象，只接受应用目录中声明的参数。`restart` 默认使用目录策略。`ports` 与 `volumes` 是 JSON 字符串数组，数量和顺序必须与应用目录一致；非必填存储路径可用空字符串跳过。后端从目录读取固定镜像、`d`、`rm`、容器端口、挂载目标、环境变量和命令模板。接口通过 `taskd` 启动 `/usr/libexec/dockergo-install`，前端使用系统任务弹窗显示部署输出。后台启动成功不代表应用执行完成。系统任务名固定为 `dockergo`，忙时返回 `409 TASK_BUSY`。自动清理后应查看系统任务日志；已有容器不会自动迁移或删除。
+`install` 接收 `appId`、`instanceId`、`ports`、`volumes`、`inputs`、`restart` 和 `token`，确认配置后统一执行 `docker run`，不再提供“立即启动”开关或只创建容器的分支。`d: true` 添加 `--detach`，`d: false` 等待本次运行结束；已安装容器再次启动仍使用 `docker start`。`inputs` 是键值均为字符串的 JSON 对象，只接受应用目录中声明的参数。`restart` 默认使用目录策略。`ports` 与 `volumes` 是 JSON 字符串数组，数量和顺序必须与应用目录一致；非必填存储路径可用空字符串跳过。后端从目录读取固定镜像、`d`、`rm`、容器端口、挂载目标、环境变量和命令模板。接口通过 `taskd` 启动 `/usr/libexec/dockergo-install`，前端使用系统任务弹窗显示部署输出。后台启动成功不代表应用执行完成。系统任务名固定为 `dockergo`，忙时返回 `409 TASK_BUSY`。自动清理后应查看系统任务日志；已有容器不会自动迁移或删除。
 
 容器列表成功响应示例：
 

@@ -367,20 +367,16 @@ local function form_input_values(definitions)
 	return values
 end
 
-local function task_suffix()
-	local uuid = string_value(sys.exec("cat /proc/sys/kernel/random/uuid 2>/dev/null"))
-	local suffix = uuid:match("^([a-f0-9]+)")
-	if suffix and #suffix >= 8 then
-		return suffix:sub(1, 8)
-	end
-
-	return string.format("%08x", os.time())
-end
-
 function api_install_app()
 	local app_id = http.formvalue("appId")
 	if not valid_app_id(app_id) then
 		write_error(400, "INVALID_APP_ID", "应用 ID 无效")
+		return
+	end
+	local instance_id = http.formvalue("instanceId")
+	if type(instance_id) ~= "string" or #instance_id ~= 8 or
+		instance_id:match("^[a-f0-9]+$") == nil then
+		write_error(400, "INVALID_INSTANCE_ID", "实例 ID 必须为 8 位小写十六进制字符")
 		return
 	end
 
@@ -473,8 +469,7 @@ function api_install_app()
 		command[#command + 1] = input_id and input_values[input_id] or argument
 	end
 
-	local suffix = task_suffix()
-	local config_id = "dockergo-install-" .. app.id .. "-" .. suffix
+	local config_id = "dockergo-install-" .. app.id .. "-" .. instance_id
 	local task_path = INSTALL_TASK_DIR .. "/" .. config_id .. ".json"
 	local task_config = {
 		appId = app.id,
@@ -484,8 +479,8 @@ function api_install_app()
 		d = app.d ~= false,
 		rm = app.rm == true,
 		restart = restart,
-		instanceId = suffix,
-		containerName = "dgo_" .. app.id .. "_" .. app.version .. "_" .. suffix,
+		instanceId = instance_id,
+		containerName = "dgo_" .. app.id .. "_" .. app.version .. "_" .. instance_id,
 		environment = environment,
 		command = command,
 		ports = task_ports,
@@ -496,6 +491,17 @@ function api_install_app()
 	if current_task.running then
 		write_error(409, "TASK_BUSY", "DockerGo 安装任务正在执行，请等待当前任务完成")
 		return
+	end
+	local list_status, names = run("docker ps --all --format '{{.Names}}'")
+	if list_status ~= 0 then
+		write_error(503, "DOCKER_UNAVAILABLE", "无法检查容器名称，请确认 Docker 服务正常")
+		return
+	end
+	for name in names:gmatch("[^\r\n]+") do
+		if name == task_config.containerName then
+			write_error(409, "CONTAINER_NAME_CONFLICT", "容器名称已存在，请关闭弹窗重新创建实例")
+			return
+		end
 	end
 
 	if sys.call("mkdir -p " .. INSTALL_TASK_DIR .. " && chmod 700 " .. INSTALL_TASK_DIR) ~= 0 then

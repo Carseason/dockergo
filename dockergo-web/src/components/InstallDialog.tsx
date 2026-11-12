@@ -259,8 +259,8 @@ export function InstallDialog({
               <code>{getDockerRunPreview(app, configuration)}</code>
             </pre>
             <small>
-              实例 ID
-              将在提交时由系统生成。命令随当前配置更新，运行前请填写必填项。
+              命令随当前配置更新，实例 ID
+              在本次配置和重试期间保持不变。运行前请填写必填项。
             </small>
           </div>
 

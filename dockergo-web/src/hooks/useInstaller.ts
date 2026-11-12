@@ -1,9 +1,11 @@
 import { useCallback, useState } from "react"
 import { installCatalogApp } from "../api/dockergo"
+import { createInstanceId } from "../instanceId"
 import type { CatalogApp, InstallConfiguration } from "../types"
 
 function getDefaultConfiguration(app: CatalogApp): InstallConfiguration {
   return {
+    instanceId: createInstanceId(),
     ports: app.ports.map((port) => String(port.port)),
     volumes: app.volumes.map(() => ""),
     inputs: Object.fromEntries(app.inputs.map((input) => [input.id, ""])),
