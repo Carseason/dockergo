@@ -175,10 +175,10 @@ schemaVersion: 1
 apps:
   - id: nginx
     title: Nginx
-    version: "1.30.5"
+    version: "latest"
     description: 高性能 HTTP 服务器与反向代理服务器
     tags: [网络, Web, 反向代理]
-    image: "nginx:1.30.5-alpine"
+    image: "nginx:latest"
     d: true
     rm: false
     restart: unless-stopped
