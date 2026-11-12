@@ -114,6 +114,11 @@ export function ContainerCard({
   )
   const publishedPorts = getPublishedPorts(container.ports)
   const initial = getContainerInitial(container)
+  const hasVersionChange = Boolean(
+    catalogApp &&
+      container.appVersion &&
+      container.appVersion !== catalogApp.version,
+  )
 
   useEffect(() => {
     if (!menuOpen) return
@@ -204,6 +209,19 @@ export function ContainerCard({
             )}
           </div>
         </div>
+        {hasVersionChange && catalogApp && (
+          <p
+            className="container-card__update"
+            role="note"
+            aria-label="市场版本更新提醒"
+            title="市场目录版本与当前安装版本不同；此提示不代表已检查远端镜像更新。"
+          >
+            <strong>版本更新提醒</strong>
+            <span>
+              已安装 {container.appVersion} · 市场 {catalogApp.version}
+            </span>
+          </p>
+        )}
         <code className="container-card__id" title={container.id}>
           {container.id.slice(0, 12)}
         </code>
