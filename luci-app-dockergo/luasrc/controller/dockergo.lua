@@ -533,21 +533,51 @@ function api_install_app()
 	})
 end
 
-local function container_label(labels, key)
-	for label in labels:gmatch("[^,]+") do
-		local name, value = label:match("^([^=]+)=(.*)$")
-		if name == key then
-			return value
+local function container_identity(name, catalog)
+	local body, instance_id = name:match("^dgo_(.+)_([a-f0-9]+)$")
+	if not body or #instance_id ~= 8 then
+		return false, "", "", ""
+	end
+
+	local known_ids = {}
+	for _, app in ipairs(catalog and catalog.apps or {}) do
+		known_ids[app.id] = true
+	end
+	local candidates, known_candidates = {}, {}
+	for index = 1, #body do
+		if body:sub(index, index) == "_" then
+			local id, version = body:sub(1, index - 1), body:sub(index + 1)
+			if valid_app_id(id) and #version <= 64 and
+				version:match("^[A-Za-z0-9][A-Za-z0-9._-]*$") then
+				local candidate = { id = id, version = version }
+				candidates[#candidates + 1] = candidate
+				if known_ids[id] then
+					known_candidates[#known_candidates + 1] = candidate
+				end
+			end
 		end
 	end
-	return ""
+	if #candidates == 0 then
+		return false, "", "", ""
+	end
+
+	-- A unique catalog ID disambiguates underscores without trusting the current version.
+	local identity
+	if #known_candidates == 1 then
+		identity = known_candidates[1]
+	elseif #known_candidates == 0 and #candidates == 1 then
+		identity = candidates[1]
+	end
+	-- Ambiguous names remain visible, but must not be linked to the wrong application.
+	return true, identity and identity.id or "", identity and identity.version or "", instance_id
 end
 
-local function normalize_container(raw)
-	local labels = string_value(raw.Labels)
+local function normalize_container(raw, catalog)
+	local name = string_value(raw.Names)
+	local managed, app_id, app_version, instance_id = container_identity(name, catalog)
 	return {
 		id = string_value(raw.ID),
-		name = string_value(raw.Names),
+		name = name,
 		image = string_value(raw.Image),
 		command = string_value(raw.Command),
 		createdAt = string_value(raw.CreatedAt),
@@ -557,10 +587,10 @@ local function normalize_container(raw)
 		status = string_value(raw.Status),
 		networks = string_value(raw.Networks),
 		mounts = string_value(raw.Mounts),
-		managed = container_label(labels, "io.dockergo.managed") == "true",
-		appId = container_label(labels, "io.dockergo.app-id"),
-		appVersion = container_label(labels, "io.dockergo.app-version"),
-		instanceId = container_label(labels, "io.dockergo.instance-id"),
+		managed = managed,
+		appId = app_id,
+		appVersion = app_version,
+		instanceId = instance_id,
 	}
 end
 
@@ -572,12 +602,13 @@ function api_list_containers()
 		return
 	end
 
+	local catalog = load_catalog()
 	local containers = {}
 	local malformed = 0
 	for line in output:gmatch("[^\r\n]+") do
 		local raw = jsonc.parse(line)
 		if raw then
-			containers[#containers + 1] = normalize_container(raw)
+			containers[#containers + 1] = normalize_container(raw, catalog)
 		else
 			malformed = malformed + 1
 		end

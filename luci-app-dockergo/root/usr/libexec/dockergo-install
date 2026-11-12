@@ -140,10 +140,6 @@ end
 local run = {
 	"/usr/bin/docker", "container", "run",
 	"--name", config.containerName,
-	"--label", "io.dockergo.managed=true",
-	"--label", "io.dockergo.app-id=" .. config.appId,
-	"--label", "io.dockergo.app-version=" .. config.version,
-	"--label", "io.dockergo.instance-id=" .. config.instanceId,
 	"--network", "dockergo_default",
 }
 

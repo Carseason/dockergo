@@ -37,10 +37,10 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 `inputs` 统一声明文本运行参数，在 `command` 字符串数组中用完整参数 `{{参数 ID}}` 引用。
 存储项可用 `required: true` 要求必须提供映射路径，自动清理应用应映射需要保留的输出。
 
-通过应用市场创建的容器使用 `dgo_<应用 ID>_<版本>_<实例 ID>` 命名，并携带
-`io.dockergo.managed`、`io.dockergo.app-id`、`io.dockergo.app-version` 和
-`io.dockergo.instance-id` 标签。容器列表接口返回这些结构化元数据，前端通过应用 ID
-关联目录信息；实例 ID 保证同一应用和版本可以创建多个容器。
+通过应用市场创建的容器使用 `dgo_<应用 ID>_<版本>_<8位实例 ID>` 命名，不添加或读取 DockerGo 标签。
+列表接口从名称解析 `managed`、`appId`、`appVersion`、`instanceId`，前端据此筛选和关联目录信息。
+ID 或版本包含下划线时优先使用唯一的目录 ID 匹配，存在歧义则保留卡片但不关联应用，详见参数文档。
+实例 ID 保证同一应用和版本可以创建多个容器；已有容器不重建，旧标签不修改。
 
 `control` 接收 `application/x-www-form-urlencoded` 参数：
 
