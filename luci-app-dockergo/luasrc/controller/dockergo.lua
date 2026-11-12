@@ -5,7 +5,7 @@ local jsonc = require "luci.jsonc"
 local sys = require "luci.sys"
 local fs = require "nixio.fs"
 
-local LIST_COMMAND = "/usr/bin/docker container ls --all --no-trunc --format '{{json .}}'"
+local LIST_COMMAND = "docker ps --all --no-trunc --format '{{json .}}'"
 local EXIT_MARKER = "__DOCKERGO_EXIT__"
 local CATALOG_PATH = "/usr/share/dockergo/catalog.json"
 local CATALOG_MAX_BYTES = 1024 * 1024
@@ -640,7 +640,7 @@ function api_control_container()
 		return
 	end
 
-	local status, output = run(string.format("/usr/bin/docker %s %s", action, container_id))
+	local status, output = run(string.format("docker %s %s", action, container_id))
 	if status ~= 0 then
 		write_error(500, "DOCKER_ACTION_FAILED", output ~= "" and output or "Docker 容器操作失败")
 		return
@@ -661,7 +661,7 @@ function api_inspect_container()
 	end
 
 	local status, output = run(string.format(
-		"/usr/bin/docker inspect --format '{{json .}}' %s", container_id))
+		"docker inspect --format '{{json .}}' %s", container_id))
 	if status ~= 0 then
 		write_error(404, "DOCKER_INSPECT_FAILED", output ~= "" and output or "无法读取容器详情")
 		return
@@ -719,7 +719,7 @@ function api_container_logs()
 	end
 
 	local status, output = run(string.format(
-		"/usr/bin/docker logs --tail 300 --timestamps %s", container_id))
+		"docker logs --tail 300 --timestamps %s", container_id))
 	if status ~= 0 then
 		write_error(404, "DOCKER_LOGS_FAILED", output ~= "" and output or "无法读取容器日志")
 		return
@@ -745,7 +745,7 @@ function api_remove_container()
 	end
 
 	local status, output = run(string.format(
-		"/usr/bin/docker container rm --force %s", container_id))
+		"docker rm --force %s", container_id))
 	if status ~= 0 then
 		write_error(500, "DOCKER_REMOVE_FAILED", output ~= "" and output or "无法卸载容器")
 		return

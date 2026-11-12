@@ -11,8 +11,7 @@ export function getDockerRunPreview(
 ): string {
   const instanceId = "<实例ID>"
   const args = [
-    "/usr/bin/docker",
-    "container",
+    "docker",
     "run",
     "--name",
     `dgo_${app.id}_${app.version}_${instanceId}`,

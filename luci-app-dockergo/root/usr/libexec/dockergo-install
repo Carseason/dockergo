@@ -123,13 +123,13 @@ for index, volume in ipairs(volumes) do
 end
 
 if not execute("[镜像] 拉取 " .. config.image,
-	{"/usr/bin/docker", "image", "pull", config.image}) then
+	{"docker", "pull", config.image}) then
 	print("[错误] 镜像拉取失败")
 	os.exit(1)
 end
 
 local run = {
-	"/usr/bin/docker", "container", "run",
+	"docker", "run",
 	"--name", config.containerName,
 }
 

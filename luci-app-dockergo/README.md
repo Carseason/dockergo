@@ -40,6 +40,8 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 新建容器使用 Docker 默认 `bridge` 网络，运行命令不指定 `--network`，不再创建专用网络。
 升级不会迁移已有容器的网络，也不会删除已有网络。
 
+命令预览与后端统一使用 `docker run`，镜像拉取、容器查询与操作也使用 `docker` 简写，通过服务运行环境的 `PATH` 查找命令。
+
 通过应用市场创建的容器使用 `dgo_<应用 ID>_<版本>_<8位实例 ID>` 命名，不添加或读取 DockerGo 标签。
 列表接口从名称解析 `managed`、`appId`、`appVersion`、`instanceId`，前端据此筛选和关联目录信息。
 ID 或版本包含下划线时优先使用唯一的目录 ID 匹配，存在歧义则保留卡片但不关联应用，详见参数文档。
