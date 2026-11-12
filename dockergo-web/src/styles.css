@@ -513,21 +513,9 @@ main {
   font-size: 11px;
 }
 
-.container-card__update {
-  margin: 10px 0 0;
-  padding: 8px 10px;
-  border: 1px solid #f0d7a0;
-  border-radius: var(--radius-control);
-  background: #fff8e8;
+.container-card__version-update {
   color: #885b12;
-  font-size: 12px;
-  line-height: 1.5;
   overflow-wrap: anywhere;
-}
-
-.container-card__update strong,
-.container-card__update span {
-  display: block;
 }
 
 .container-more {
