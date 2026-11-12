@@ -4,7 +4,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 
 应用市场字段、安装请求参数、默认值和当前限制详见 [参数说明](../docs/parameters.md)。
 
-前端使用 History 路径路由保存已安装 / 应用市场视图和标签筛选，不使用 Hash。菜单注册 `/admin/services/dockergo/installed`、`/admin/services/dockergo/market` 及市场标签子路径，均加载同一个视图并继承 LuCI 登录校验。标签位于路径中，重新登录后仍能返回完整路径；刷新、前进和后退保留 URL 对应的状态。市场标签选项从目录 `tags` 动态生成。
+前端使用 History 路径路由保存已安装 / 应用市场视图，不使用 Hash。菜单注册 `/admin/services/dockergo/installed`、`/admin/services/dockergo/market`，均加载同一个视图并继承 LuCI 登录校验；刷新、重新登录和前进后退保留对应视图。市场标签从目录 `tags` 动态生成，只保存在页面内存中，选择时不改变 URL，刷新后恢复“全部”。旧市场子路径仍可加载前端，随后规范为市场路径并清除旧标签。
 
 ## JSON API
 

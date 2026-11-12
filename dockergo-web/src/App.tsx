@@ -23,6 +23,7 @@ type ToastNotice = {
 
 export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
   const { route, navigate } = useCatalogRoute()
+  const [activeTag, setActiveTag] = useState("")
   const [detailsContainer, setDetailsContainer] =
     useState<DockerContainer | null>(null)
   const [logsContainer, setLogsContainer] = useState<DockerContainer | null>(
@@ -84,7 +85,7 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
       if (!task) return
 
       showSystemTaskLog(task.taskId, (exitCode) => {
-        navigate({ view: "installed", tag: "" })
+        navigate({ view: "installed" })
         void docker.refresh()
 
         if (exitCode === 0) {
@@ -136,7 +137,8 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
   }, [docker.remove, removeContainer, showToast])
 
   const browseAllApps = () => {
-    navigate({ view: "market", tag: "" })
+    setActiveTag("")
+    navigate({ view: "market" })
     document
       .getElementById("catalog")
       ?.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -229,14 +231,13 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
               containersLoading={docker.loading}
               pendingContainerId={docker.pendingContainerId}
               activeTab={route.view === "installed" ? "已安装" : "应用市场"}
-              activeTag={route.tag}
+              activeTag={activeTag}
               onTabChange={(tab) =>
                 navigate({
                   view: tab === "已安装" ? "installed" : "market",
-                  tag: "",
                 })
               }
-              onTagChange={(tag) => navigate({ view: "market", tag })}
+              onTagChange={setActiveTag}
               onInstall={installer.openInstaller}
               onRefreshApps={() => void catalog.refresh()}
               onRefreshContainers={() => void docker.refresh()}

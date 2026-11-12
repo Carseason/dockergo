@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from "react"
+import { useCallback, useEffect, useSyncExternalStore } from "react"
 import {
   formatCatalogRoute,
   parseCatalogRoute,
@@ -32,6 +32,19 @@ function getBasePath() {
 
 export function useCatalogRoute() {
   const pathname = useSyncExternalStore(subscribe, getSnapshot)
+  useEffect(() => {
+    if (window.location.pathname !== pathname) return
+    const basePath = getBasePath()
+    const route = parseCatalogRoute(pathname, basePath)
+    const canonical = formatCatalogRoute(route, basePath)
+    if (route.view === "market" && pathname !== canonical) {
+      const url = new URL(window.location.href)
+      url.pathname = canonical
+      url.hash = ""
+      window.history.replaceState(window.history.state, "", url)
+      window.dispatchEvent(new Event("dockergo:navigate"))
+    }
+  }, [pathname])
   const navigate = useCallback((route: CatalogRoute) => {
     const nextPath = formatCatalogRoute(route, getBasePath())
     if (window.location.pathname !== nextPath) {
