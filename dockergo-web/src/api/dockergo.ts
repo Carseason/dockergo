@@ -227,7 +227,7 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
 }
 
 export async function listCatalogApps(): Promise<CatalogResponse> {
-  const payload = await requestJson<unknown>("catalog")
+  const payload = await requestJson<unknown>("apps.json")
   if (!isRecord(payload) || payload.schemaVersion !== 1) {
     throw new Error("DockerGo API 返回了不支持的应用目录版本")
   }

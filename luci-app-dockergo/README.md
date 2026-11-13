@@ -12,7 +12,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| `GET` | `/catalog` | 获取 `/usr/share/dockergo/app.json` 中的应用目录 |
+| `GET` | `/apps.json` | 获取 `/usr/share/dockergo/app.json` 中的应用目录 |
 | `GET` | `/files?path=/mnt/...` | 浏览 `/mnt` 下可用的映射目录和文件 |
 | `POST` | `/install` | 创建应用安装系统任务并返回任务 ID |
 | `GET` | `/containers` | 获取全部 Docker 容器 |
@@ -21,10 +21,10 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 | `POST` | `/control` | 启动、暂停或恢复容器 |
 | `POST` | `/remove` | 强制停止并删除指定容器，保留镜像与数据卷 |
 
-应用市场由 `/catalog` 返回的数据渲染。后端仅接受 `schemaVersion` 为 `1`、
+应用市场由 `/apps.json` 返回的数据渲染。后端仅接受 `schemaVersion` 为 `1`、
 应用 ID 唯一且核心字段完整的目录文件；缺失、过大或无法解析的目录会返回明确的 JSON 错误。
 仓库中的 `datas/app.yaml` 是可编辑目录，`datas/app.json` 是对应的 JSON 数据；
-插件携带的 `/usr/share/dockergo/app.json` 与生成结果保持一致，并由 `/catalog` 接口直接读取。
+插件携带的 `/usr/share/dockergo/app.json` 与生成结果保持一致，并由 `/apps.json` 接口直接读取。
 每个应用必须声明 `version` 字符串，应用市场会在标题旁显示该版本号。
 端口项使用 `port` 表示默认宿主机端口、`target` 表示容器端口，并通过 `desc`
 向用户说明用途。存储项使用 `target` 表示容器路径，`type` 必须为 `dir` 或

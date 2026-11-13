@@ -18,7 +18,7 @@ local function valid_restart(value)
 end
 
 function index()
-	entry({"admin", "services", "dockergo", "api", "catalog"}, call("api_catalog")).leaf = true
+	entry({"admin", "services", "dockergo", "api", "apps.json"}, call("api_apps")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "files"}, call("api_list_files")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "install"}, post("api_install_app")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "containers"}, call("api_list_containers")).leaf = true
@@ -228,7 +228,7 @@ local function load_catalog()
 	return catalog
 end
 
-function api_catalog()
+function api_apps()
 	local catalog, status, code, message = load_catalog()
 	if not catalog then
 		write_error(status, code, message)

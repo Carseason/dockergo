@@ -9,7 +9,7 @@
 | `datas/app.yaml` | 人工维护的应用市场目录 |
 | `datas/app.json` | YAML 对应的 JSON 数据 |
 | `luci-app-dockergo/root/usr/share/dockergo/app.json` | 插件携带的运行时 JSON，安装后位于 `/usr/share/dockergo/app.json` |
-| `GET /cgi-bin/luci/admin/services/dockergo/api/catalog` | 后端读取运行时 JSON，校验后返回给前端 |
+| `GET /cgi-bin/luci/admin/services/dockergo/api/apps.json` | 后端读取运行时 JSON，校验后返回给前端 |
 
 前端不直接读取 YAML，也不直接读取仓库中的 `datas/app.json`。修改 YAML 后，需要生成 JSON、同步插件内的 JSON，再部署运行时文件。当前 `package.json` 没有提供 YAML 转 JSON 的生成命令；`build:luci` 只构建前端资源，不转换目录数据。
 
@@ -138,7 +138,7 @@
 
 键必须匹配 `^[A-Za-z_][A-Za-z0-9_]*$`，值必须是字符串，数字和布尔值也要用引号包裹。安装时转为 `--env KEY=VALUE`；用户当前不能在安装表单中修改。
 
-目录内容由 `/catalog` 返回给前端，环境变量不要包含真实密码、Token 等私密值。`environment` 的键值格式当前在安装阶段检查。
+目录内容由 `/apps.json` 返回给前端，环境变量不要包含真实密码、Token 等私密值。`environment` 的键值格式当前在安装阶段检查。
 
 ## 7. inputs 与 command：文本参数
 
@@ -268,7 +268,7 @@ ID 和版本都可能包含下划线。后端枚举合法拆分，只有唯一�
 
 | 方法与路径 | 参数 | 当前行为 |
 | --- | --- | --- |
-| `GET /catalog` | 无 | 返回目录，结构版本固定为 1 |
+| `GET /apps.json` | 无 | 返回目录，结构版本固定为 1 |
 | `GET /containers` | 无 | 返回全部 Docker 容器和按名称解析的 DockerGo 关联信息 |
 | `GET /files` | `path`，默认 `/mnt` | 返回可浏览目录和文件，类型字段为 `directory` / `file`；这是接口返回类型，不是目录 `volumes.type` |
 | `GET /inspect` | `id` | 返回容器状态、端口、挂载、命令和网络等详情 |
