@@ -228,33 +228,33 @@ export function ContainerCard({
           {container.networks && <span> · {container.networks}</span>}
         </p>
         <div className="container-card__footer">
-          <div className="container-card__ports">
-            <HardDrives size={15} aria-hidden="true" />
-            {publishedPorts.length > 0
-              ? publishedPorts.map((port) =>
-                  port.protocol === "tcp" ? (
-                    <a
-                      key={`${port.hostPort}/${port.protocol}`}
-                      href={getPortUrl(port.hostPort)}
-                      target="_blank"
-                      rel="noreferrer"
-                      title={`打开宿主机端口 ${port.hostPort}`}
-                    >
-                      {port.hostPort}
-                      <ArrowSquareOut size={12} />
-                    </a>
-                  ) : (
-                    <span
-                      className="container-card__port-label"
-                      key={`${port.hostPort}/${port.protocol}`}
-                      title={`${port.containerPort}/${port.protocol}`}
-                    >
-                      {port.hostPort}
-                    </span>
-                  ),
-                )
-              : "无公开端口"}
-          </div>
+          {publishedPorts.length > 0 && (
+            <div className="container-card__ports">
+              <HardDrives size={15} aria-hidden="true" />
+              {publishedPorts.map((port) =>
+                port.protocol === "tcp" ? (
+                  <a
+                    key={`${port.hostPort}/${port.protocol}`}
+                    href={getPortUrl(port.hostPort)}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={`打开宿主机端口 ${port.hostPort}`}
+                  >
+                    {port.hostPort}
+                    <ArrowSquareOut size={12} />
+                  </a>
+                ) : (
+                  <span
+                    className="container-card__port-label"
+                    key={`${port.hostPort}/${port.protocol}`}
+                    title={`${port.containerPort}/${port.protocol}`}
+                  >
+                    {port.hostPort}
+                  </span>
+                ),
+              )}
+            </div>
+          )}
           <div className="container-card__buttons">
             {control && (
               <button
