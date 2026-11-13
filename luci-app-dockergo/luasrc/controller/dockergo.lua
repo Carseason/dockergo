@@ -7,7 +7,7 @@ local fs = require "nixio.fs"
 
 local LIST_COMMAND = "docker ps --all --no-trunc --format '{{json .}}'"
 local EXIT_MARKER = "__DOCKERGO_EXIT__"
-local CATALOG_PATH = "/usr/share/dockergo/app.json"
+local CATALOG_PATH = "/usr/share/dockergo/apps.json"
 local CATALOG_MAX_BYTES = 1024 * 1024
 local INSTALL_TASK_DIR = "/var/run/dockergo"
 local INSTALL_TASK_ID = "dockergo"

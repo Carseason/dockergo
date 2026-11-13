@@ -6,12 +6,12 @@
 
 | 文件或接口 | 用途 |
 | --- | --- |
-| `datas/app.yaml` | 人工维护的应用市场目录 |
-| `datas/app.json` | YAML 对应的 JSON 数据 |
-| `luci-app-dockergo/root/usr/share/dockergo/app.json` | 插件携带的运行时 JSON，安装后位于 `/usr/share/dockergo/app.json` |
+| `datas/apps.yaml` | 人工维护的应用市场目录 |
+| `datas/apps.json` | YAML 对应的 JSON 数据 |
+| `luci-app-dockergo/root/usr/share/dockergo/apps.json` | 插件携带的运行时 JSON，安装后位于 `/usr/share/dockergo/apps.json` |
 | `GET /cgi-bin/luci/admin/services/dockergo/api/apps.json` | 后端读取运行时 JSON，校验后返回给前端 |
 
-前端不直接读取 YAML，也不直接读取仓库中的 `datas/app.json`。修改 YAML 后，需要生成 JSON、同步插件内的 JSON，再部署运行时文件。当前 `package.json` 没有提供 YAML 转 JSON 的生成命令；`build:luci` 只构建前端资源，不转换目录数据。
+前端不直接读取 YAML，也不直接读取仓库中的 `datas/apps.json`。修改 YAML 后，需要生成 JSON、同步插件内的 JSON，再部署运行时文件。当前 `package.json` 没有提供 YAML 转 JSON 的生成命令；`build:luci` 只构建前端资源，不转换目录数据。
 
 应用目录文件必须非空，且不超过 1 MiB。根结构如下：
 
@@ -168,7 +168,7 @@
 
 ## 8. 当前目录示例
 
-以下是当前 `datas/app.yaml` 的两类应用；版本和镜像值以该文件的后续修改为准。
+以下是当前 `datas/apps.yaml` 的两类应用；版本和镜像值以该文件的后续修改为准。
 
 ```yaml
 schemaVersion: 1
@@ -297,7 +297,7 @@ Vite 开发和预览服务当前监听 `0.0.0.0:37001`，配置位于 `dockergo-
 
 ## 12. 实现依据与维护检查
 
-- [当前 YAML 目录](../datas/app.yaml) 与 [对应 JSON](../datas/app.json)。
+- [当前 YAML 目录](../datas/apps.yaml) 与 [对应 JSON](../datas/apps.json)。
 - [前端参数类型](../dockergo-web/src/types.ts)、[目录解析与 API 请求](../dockergo-web/src/api/dockergo.ts)。
 - [表单初始值](../dockergo-web/src/hooks/useInstaller.ts)、[安装配置表单](../dockergo-web/src/components/InstallDialog.tsx)。
 - [后端校验和接口](../luci-app-dockergo/luasrc/controller/dockergo.lua)、[Docker 安装执行器](../luci-app-dockergo/root/usr/libexec/dockergo-install)。
