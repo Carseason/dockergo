@@ -80,7 +80,7 @@ function getContainerAction(state: string, taskMode: boolean): {
       return { action: "start", label: taskMode ? "运行" : "启动" }
     case "exited":
     case "dead":
-      return { action: "start", label: taskMode ? "再次运行" : "启动" }
+      return { action: "start", label: "启动" }
     default:
       return null
   }
@@ -164,7 +164,7 @@ export function ContainerCard({
                     className="container-card__version-update"
                     title="市场目录版本与当前安装版本不同；此提示不代表已检查远端镜像更新。"
                   >
-                    （有 {catalogApp.version} 版本）
+                    （{catalogApp.version}新版本）
                   </span>
                 )}
               </span>
