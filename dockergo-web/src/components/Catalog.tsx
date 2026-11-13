@@ -15,6 +15,7 @@ const catalogTabs = ["已安装", "应用市场"]
 
 type CatalogProps = {
   apps: CatalogApp[]
+  tags: string[]
   containers: DockerContainer[]
   appsLoading: boolean
   containersLoading: boolean
@@ -34,6 +35,7 @@ type CatalogProps = {
 
 export function Catalog({
   apps,
+  tags,
   containers,
   appsLoading,
   containersLoading,
@@ -51,10 +53,6 @@ export function Catalog({
   onRemoveContainer,
 }: CatalogProps) {
   const isInstalled = activeTab === "已安装"
-  const tags = Array.from(
-    new Set(apps.flatMap((app) => app.tags).filter((tag) => tag.trim() !== "")),
-  )
-  if (activeTag && !tags.includes(activeTag)) tags.push(activeTag)
   const visibleApps = activeTag
     ? apps.filter((app) => app.tags.includes(activeTag))
     : apps

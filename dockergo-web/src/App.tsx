@@ -226,6 +226,7 @@ export default function App({ overlayRoot }: { overlayRoot: HTMLElement }) {
 
             <Catalog
               apps={catalog.apps}
+              tags={catalog.tags}
               containers={docker.containers}
               appsLoading={catalog.loading}
               containersLoading={docker.loading}

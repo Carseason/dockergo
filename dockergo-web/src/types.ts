@@ -40,6 +40,7 @@ export type CatalogApp = {
 export type CatalogResponse = {
   schemaVersion: number
   apps: CatalogApp[]
+  tags: string[]
 }
 
 export type DockerContainer = {

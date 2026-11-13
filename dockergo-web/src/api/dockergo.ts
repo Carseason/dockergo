@@ -154,7 +154,9 @@ function normalizeCatalogApp(value: unknown): CatalogApp | null {
     (value.rm !== undefined && typeof value.rm !== "boolean") ||
     (value.restart !== undefined &&
       (typeof value.restart !== "string" ||
-        !["no", "always", "unless-stopped", "on-failure"].includes(value.restart)))
+        !["no", "always", "unless-stopped", "on-failure"].includes(
+          value.restart,
+        )))
   ) {
     return null
   }
@@ -236,12 +238,19 @@ export async function listCatalogApps(): Promise<CatalogResponse> {
     throw new Error("DockerGo API 返回了无效的应用目录")
   }
 
+  if (
+    !Array.isArray(payload.tags) ||
+    !payload.tags.every((tag) => typeof tag === "string" && tag.trim() !== "")
+  ) {
+    throw new Error("DockerGo API 返回了无效的标签列表")
+  }
+
   const apps = payload.apps.map(normalizeCatalogApp)
   if (apps.some((app) => app === null)) {
     throw new Error("DockerGo API 返回的应用目录包含无效数据")
   }
 
-  return { schemaVersion: 1, apps: apps as CatalogApp[] }
+  return { schemaVersion: 1, apps: apps as CatalogApp[], tags: payload.tags }
 }
 
 export function listDockerContainers(): Promise<DockerContainerListResponse> {

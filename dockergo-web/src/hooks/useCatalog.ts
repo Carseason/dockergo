@@ -4,6 +4,7 @@ import type { CatalogApp } from "../types"
 
 export function useCatalog(onError: (message: string) => void) {
   const [apps, setApps] = useState<CatalogApp[]>([])
+  const [tags, setTags] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const requestId = useRef(0)
 
@@ -15,9 +16,11 @@ export function useCatalog(onError: (message: string) => void) {
       const response = await listCatalogApps()
       if (currentRequest !== requestId.current) return
       setApps(response.apps)
+      setTags(response.tags)
     } catch (requestError) {
       if (currentRequest !== requestId.current) return
       setApps([])
+      setTags([])
       onError(
         requestError instanceof Error
           ? requestError.message
@@ -35,5 +38,5 @@ export function useCatalog(onError: (message: string) => void) {
     }
   }, [refresh])
 
-  return { apps, loading, refresh }
+  return { apps, tags, loading, refresh }
 }
