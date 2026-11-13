@@ -8,10 +8,20 @@
 | --- | --- |
 | `datas/apps.yaml` | 人工维护的应用市场目录 |
 | `datas/apps.json` | YAML 对应的 JSON 数据 |
+| `datas/tags.json` | 从所有应用的 `tags` 提取的去重标签字符串数组，按首次出现顺序排列 |
 | `luci-app-dockergo/root/usr/share/dockergo/apps.json` | 插件携带的运行时 JSON，安装后位于 `/usr/share/dockergo/apps.json` |
+| `luci-app-dockergo/root/usr/share/dockergo/tags.json` | 与 `datas/tags.json` 一致的插件标签数据 |
 | `GET /cgi-bin/luci/admin/services/dockergo/api/apps.json` | 后端读取运行时 JSON，校验后返回给前端 |
 
-前端不直接读取 YAML，也不直接读取仓库中的 `datas/apps.json`。修改 YAML 后，需要生成 JSON、同步插件内的 JSON，再部署运行时文件。当前 `package.json` 没有提供 YAML 转 JSON 的生成命令；`build:luci` 只构建前端资源，不转换目录数据。
+前端不直接读取 YAML，也不直接读取仓库中的 `datas/apps.json`。修改 YAML 后，在仓库根目录运行：
+
+```sh
+pnpm --dir dockergo-web run data:generate
+```
+
+首次使用请先运行 `pnpm --dir dockergo-web install --frozen-lockfile` 安装依赖。脚本将 YAML 转为 `apps.json`，并提取去重后的 `tags.json`，同时写入 `datas/` 和插件数据目录。转换先检查根结构、应用 ID 唯一性、版本和标签格式；完整安装参数仍由后端校验。无效输入会报错退出，不覆盖已有生成文件。数字版本必须加引号。
+
+应用内部的 `tags` 保留，作为应用与标签的关联；独立 `tags.json` 仅提供标签汇总，不新增 API，前端目前仍从应用数据计算筛选标签。`build:luci` 和根目录 `./build.sh` 会自动执行转换。可运行 `pnpm --dir dockergo-web run test:data` 验证转换逻辑。部署时需同步插件数据文件。
 
 应用目录文件必须非空，且不超过 1 MiB。根结构如下：
 
