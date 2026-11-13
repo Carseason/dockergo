@@ -25,7 +25,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 应用 ID 唯一且核心字段完整的目录文件；缺失、过大或无法解析的目录会返回明确的 JSON 错误。
 仓库中的 `datas/apps.yaml` 是可编辑目录，`datas/apps.json` 是对应的 JSON 数据；
 插件携带的 `/usr/share/dockergo/apps.json` 与生成结果保持一致，并由 `/apps.json` 接口直接读取。
-修改 YAML 后，在仓库根目录执行 `pnpm --dir dockergo-web run data:generate`，生成并同步两份 `apps.json` 和 `tags.json`。首次使用先运行 `pnpm --dir dockergo-web install --frozen-lockfile` 安装依赖。`tags.json` 是按首次出现顺序去重的标签字符串数组；应用中的 `tags` 保留用于关联。当前标签筛选仍从应用数据提取，不新增标签 API。
+修改 YAML 后，在仓库根目录执行 `pnpm --dir dockergo-web run data:generate`，生成并同步两份 `apps.json`。首次使用先运行 `pnpm --dir dockergo-web install --frozen-lockfile` 安装依赖。根对象包含同级的 `schemaVersion`、`apps`、`tags`，其中顶层 `tags` 是按首次出现顺序去重的标签字符串数组，不生成独立标签文件；应用中的 `tags` 保留用于关联。接口直接返回顶层标签汇总，当前前端标签筛选仍从应用数据提取。
 每个应用必须声明 `version` 字符串，应用市场会在标题旁显示该版本号。
 端口项使用 `port` 表示默认宿主机端口、`target` 表示容器端口，并通过 `desc`
 向用户说明用途。存储项使用 `target` 表示容器路径，`type` 必须为 `dir` 或

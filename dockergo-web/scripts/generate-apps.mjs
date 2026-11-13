@@ -42,18 +42,19 @@ export function convertApps(source) {
     for (const tag of app.tags) tags.add(tag)
   }
 
-  const appsJson = JSON.stringify(catalog, null, 2) + "\n"
+  const appsJson =
+    JSON.stringify({ ...catalog, tags: [...tags] }, null, 2) + "\n"
   if (Buffer.byteLength(appsJson) > 1024 * 1024) {
     throw new Error("生成的应用目录超过 1 MiB")
   }
-  return { appsJson, tagsJson: JSON.stringify([...tags], null, 2) + "\n" }
+  return { appsJson }
 }
 
 export async function generateApps(
   projectRoot = fileURLToPath(new URL("../../", import.meta.url)),
 ) {
   // Parse and validate before changing any generated files.
-  const { appsJson, tagsJson } = convertApps(
+  const { appsJson } = convertApps(
     await readFile(resolve(projectRoot, "datas/apps.yaml"), "utf8"),
   )
   for (const directory of [
@@ -63,7 +64,6 @@ export async function generateApps(
     const destination = resolve(projectRoot, directory)
     await mkdir(destination, { recursive: true })
     await writeFile(resolve(destination, "apps.json"), appsJson)
-    await writeFile(resolve(destination, "tags.json"), tagsJson)
   }
 }
 
@@ -75,7 +75,7 @@ if (
     if (process.argv.length !== 2)
       throw new Error("用法：node scripts/generate-apps.mjs")
     await generateApps()
-    console.log("已生成 apps.json 和 tags.json，并同步到 LuCI 插件数据目录")
+    console.log("已生成包含顶层 tags 的 apps.json，并同步到 LuCI 插件数据目录")
   } catch (error) {
     console.error(`生成应用数据失败：${error.message}`)
     process.exitCode = 1

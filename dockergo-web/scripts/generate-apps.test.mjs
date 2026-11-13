@@ -19,9 +19,10 @@ apps:
 `
 
 test("extracts unique tags in first-seen order and preserves application data", () => {
-  const { appsJson, tagsJson } = convertApps(source)
-  assert.deepEqual(JSON.parse(tagsJson), ["网络", "Web", "下载"])
-  const { apps } = JSON.parse(appsJson)
+  const { appsJson } = convertApps(source)
+  const { apps, tags, schemaVersion } = JSON.parse(appsJson)
+  assert.equal(schemaVersion, 1)
+  assert.deepEqual(tags, ["网络", "Web", "下载"])
   assert.deepEqual(apps[0].tags, ["网络", "Web", "网络"])
   assert.equal(apps[0].ports[0].target, 80)
   assert.equal(apps[1].rm, true)
@@ -31,15 +32,20 @@ test("extracts unique tags in first-seen order and preserves application data", 
 
 test("allows empty application and tag arrays", () => {
   assert.deepEqual(
-    JSON.parse(convertApps("schemaVersion: 1\napps: []").tagsJson),
+    JSON.parse(convertApps("schemaVersion: 1\napps: []").appsJson).tags,
     [],
   )
   assert.deepEqual(
     JSON.parse(
-      convertApps(source.replaceAll(/tags: \[.*\]/g, "tags: []")).tagsJson,
-    ),
+      convertApps(source.replaceAll(/tags: \[.*\]/g, "tags: []")).appsJson,
+    ).tags,
     [],
   )
+})
+
+test("recomputes root tags from application associations", () => {
+  const { appsJson } = convertApps("tags: [obsolete]\n" + source)
+  assert.deepEqual(JSON.parse(appsJson).tags, ["网络", "Web", "下载"])
 })
 
 test("rejects malformed YAML, invalid schema, duplicate IDs and invalid tag/version types", () => {
@@ -62,7 +68,7 @@ test("writes matching data files and leaves previous outputs intact on validatio
     await mkdir(join(root, "datas"))
     await writeFile(join(root, "datas/apps.yaml"), source)
     await generateApps(root)
-    for (const name of ["apps.json", "tags.json"]) {
+    for (const name of ["apps.json"]) {
       assert.equal(
         await readFile(join(root, "datas", name), "utf8"),
         await readFile(
@@ -70,6 +76,14 @@ test("writes matching data files and leaves previous outputs intact on validatio
           "utf8",
         ),
       )
+    }
+    for (const directory of [
+      "datas",
+      "luci-app-dockergo/root/usr/share/dockergo",
+    ]) {
+      await assert.rejects(readFile(join(root, directory, "tags.json")), {
+        code: "ENOENT",
+      })
     }
     const before = await readFile(join(root, "datas/apps.json"), "utf8")
     await writeFile(join(root, "datas/apps.yaml"), "apps: invalid")
