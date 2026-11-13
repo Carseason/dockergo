@@ -12,7 +12,7 @@ export function Hero({ onBrowse }: HeroProps) {
           <Sparkle size={14} weight="fill" />
           精选应用
         </span>
-        <h2 id="hero-title">几分钟内，部署你的下一个服务</h2>
+        <h2 id="hero-title">轻松部署容器服务</h2>
         <p>从应用目录配置 Docker 容器，并在同一页面集中管理。</p>
         <button type="button" onClick={onBrowse}>
           浏览全部应用 <ArrowRight size={17} weight="bold" />
