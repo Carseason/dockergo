@@ -10,6 +10,8 @@ local EXIT_MARKER = "__DOCKERGO_EXIT__"
 local INSTALL_TASK_DIR = "/var/run/dockergo"
 local INSTALL_TASK_ID = "dockergo"
 local INSTALL_RUNNER = "/usr/libexec/dockergo-install"
+local CATALOG_SOURCE = "https://github.com/Carseason/dockergo/releases/download/apps/apps.json"
+local CATALOG_MAX_BYTES = 1024 * 1024
 
 local function valid_restart(value)
 	return value == "no" or value == "always" or value == "unless-stopped" or value == "on-failure"
@@ -217,12 +219,41 @@ local function run(command)
 	return status, output
 end
 
-local function load_catalog(refresh)
-	return require("luci.model.dockergo.catalog").load(valid_catalog, refresh)
+local function load_catalog()
+	local id = sys.uniqueid(16)
+	local temporary_dir = id and ("/tmp/dockergo-catalog-" .. id)
+	if not temporary_dir or not fs.mkdir(temporary_dir, "700") then
+		return nil, 500, "CATALOG_DOWNLOAD_FAILED", "无法创建下载临时目录"
+	end
+	local temporary_path = temporary_dir .. "/apps.json"
+	local function cleanup()
+		fs.unlink(temporary_path)
+		fs.rmdir(temporary_dir)
+	end
+	local command = "curl --fail --silent --show-error --location --max-redirs 5 " ..
+		"--proto '=https' --proto-redir '=https' --connect-timeout 5 --max-time 20 " ..
+		"--max-filesize 1048576 --header 'Cache-Control: no-cache, no-store' --output " ..
+		require("luci.util").shellquote(temporary_path) .. " " ..
+		require("luci.util").shellquote(CATALOG_SOURCE) .. " >/dev/null 2>&1"
+	if sys.call(command) ~= 0 then
+		cleanup()
+		return nil, 503, "CATALOG_DOWNLOAD_FAILED", "无法从 CDN 获取应用目录，请检查设备网络或稍后刷新"
+	end
+	local contents = fs.readfile(temporary_path, CATALOG_MAX_BYTES + 1)
+	cleanup()
+	if not contents or #contents == 0 or #contents > CATALOG_MAX_BYTES then
+		return nil, 502, "CATALOG_INVALID", "应用目录为空或超过 1 MiB"
+	end
+	local catalog = jsonc.parse(contents)
+	local valid, message = valid_catalog(catalog)
+	if not valid then
+		return nil, 502, "CATALOG_INVALID", message
+	end
+	return catalog
 end
 
 function api_apps()
-	local catalog, status, code, message = load_catalog(true)
+	local catalog, status, code, message = load_catalog()
 	if not catalog then
 		write_error(status, code, message)
 		return

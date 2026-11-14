@@ -8,11 +8,11 @@
 | --- | --- |
 | `datas/apps.yaml` | 人工维护的应用市场目录 |
 | `datas/apps.json` | YAML 对应的 JSON 数据 |
-| `GET /cgi-bin/luci/admin/services/dockergo/api/apps.json` | 后端从固定 CDN 下载、校验并缓存，再返回给前端 |
+| `GET /cgi-bin/luci/admin/services/dockergo/api/apps.json` | Controller 每次从固定 CDN 下载并校验后返回，不缓存 |
 
-目录发布地址为 `https://github.com/Carseason/dockergo/releases/download/apps/apps.json`。网页仍调用同源 API，避免 GitHub Releases 下载链路缺少跨域允许头导致浏览器请求失败。每次打开页面或手动刷新市场都会重新下载；切换标签或视图不额外请求。安装校验和容器名称关联共用 `/var/run/dockergo/apps.json` 中已验证的 CDN 快照，缓存有效期 5 分钟，缺失、损坏或过期会重新下载。目录获取失败时返回错误，不回退到插件内置目录；失败下载不会覆盖已有缓存。
+目录发布地址为 `https://github.com/Carseason/dockergo/releases/download/apps/apps.json`。网页仍调用同源 API，避免 GitHub Releases 下载链路缺少跨域允许头导致浏览器请求失败。下载和校验逻辑统一放在 Controller 中，不使用独立的 catalog 模块，也不读取或写入 `/var/run/dockergo/apps.json` 缓存。获取市场目录、安装校验和容器名称关联需要目录时，每次均重新下载，失败直接返回错误，不回退到旧数据。前端仍只在打开页面或手动刷新时请求市场目录，切换标签或视图不额外请求。
 
-后端通过 `curl` 验证 HTTPS 证书，仅允许 HTTPS 重定向，连接超时 5 秒、总超时 20 秒、最多 5 次重定向，目录限制 1 MiB。插件依赖 `curl`、`ca-bundle`，临时下载文件位于私有目录，校验成功后原子替换缓存。可在具备 LuCI Lua 环境的设备上运行 `lua tests/catalog_test.lua luasrc/model/dockergo/catalog.lua` 测试下载和缓存逻辑（测试使用内存模拟，不联网或改动设备目录）。
+后端通过 `curl` 验证 HTTPS 证书，仅允许 HTTPS 重定向，连接超时 5 秒、总超时 20 秒、最多 5 次重定向，目录限制 1 MiB，并发送 `Cache-Control: no-cache, no-store`。插件依赖 `curl`、`ca-bundle`，临时下载文件位于 `/tmp` 下随机命名的私有目录，读取后立即删除，失败时也会清理，不持久保留下载结果。API 响应同样设置 `Cache-Control: no-store`。可在具备 LuCI Lua 环境的设备上运行 `lua tests/catalog_test.lua luasrc/controller/dockergo.lua` 测试逐次下载、校验和临时文件清理（测试使用内存模拟，不联网或改动设备目录）。
 
 前端不直接读取 YAML，也不直接读取仓库中的 `datas/apps.json`。修改 YAML 后，在仓库根目录运行：
 
