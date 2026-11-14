@@ -178,7 +178,7 @@ pnpm --dir dockergo-web run data:generate
 
 ## 8. 当前目录示例
 
-以下是当前 `datas/apps.yaml` 的两类应用；版本和镜像值以该文件的后续修改为准。
+当前 `datas/apps.yaml` 仅保留 Nginx，提供可选的静态文件目录映射；宿主机路径由用户安装时填写，留空则使用镜像内置的静态文件。版本和镜像值以该文件的后续修改为准。
 
 ```yaml
 schemaVersion: 1
@@ -197,26 +197,10 @@ apps:
         target: 80
         desc: 默认端口
 
-  - id: gallery-dl
-    title: gallery-dl
-    version: "1.32.19"
-    description: 支持多个图片与媒体站点的命令行下载工具
-    tags: [下载, 图片, 媒体]
-    image: "ghcr.io/mikf/gallery-dl:v1.32.19"
-    d: false
-    rm: true
-    restart: "no"
-    inputs:
-      - id: url
-        title: 下载地址
-        required: true
-        placeholder: "https://example.com/album"
-    command: ["--directory", "/gallery-dl", "{{url}}"]
     volumes:
-      - target: /gallery-dl
+      - target: /usr/share/nginx/html
         type: dir
-        desc: 下载目录
-        required: true
+        desc: 静态文件目录
 ```
 
 ## 9. 安装请求参数
