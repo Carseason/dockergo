@@ -8,7 +8,6 @@
 | --- | --- |
 | `datas/apps.yaml` | 人工维护的应用市场目录 |
 | `datas/apps.json` | YAML 对应的 JSON 数据 |
-| `luci-app-dockergo/root/usr/share/dockergo/apps.json` | 构建时生成的目录副本，运行时不再作为市场或安装来源 |
 | `GET /cgi-bin/luci/admin/services/dockergo/api/apps.json` | 后端从固定 CDN 下载、校验并缓存，再返回给前端 |
 
 目录发布地址为 `https://github.com/Carseason/dockergo/releases/download/apps/apps.json`。网页仍调用同源 API，避免 GitHub Releases 下载链路缺少跨域允许头导致浏览器请求失败。每次打开页面或手动刷新市场都会重新下载；切换标签或视图不额外请求。安装校验和容器名称关联共用 `/var/run/dockergo/apps.json` 中已验证的 CDN 快照，缓存有效期 5 分钟，缺失、损坏或过期会重新下载。目录获取失败时返回错误，不回退到插件内置目录；失败下载不会覆盖已有缓存。
@@ -21,9 +20,9 @@
 pnpm --dir dockergo-web run data:generate
 ```
 
-首次使用请先运行 `pnpm --dir dockergo-web install --frozen-lockfile` 安装依赖。脚本将 YAML 转为 `apps.json`，在根对象生成与 `apps`、`schemaVersion` 同级的 `tags` 字段，同时写入 `datas/` 和插件数据目录，不生成独立标签文件。转换先检查根结构、应用 ID 唯一性、版本和标签格式；完整安装参数仍由后端校验。无效输入会报错退出，不覆盖已有生成文件。数字版本必须加引号。
+首次使用请先运行 `pnpm --dir dockergo-web install --frozen-lockfile` 安装依赖。脚本仅将 YAML 转为 `datas/apps.json`，在根对象生成与 `apps`、`schemaVersion` 同级的 `tags` 字段；不向插件目录写入数据，也不生成独立标签文件。插件发布目录不携带应用市场数据。转换先检查根结构、应用 ID 唯一性、版本和标签格式；完整安装参数仍由后端校验。无效输入会报错退出，不覆盖已有生成文件。数字版本必须加引号。
 
-应用内部的 `tags` 保留，作为应用与标签的关联；顶层 `tags` 是按首次出现顺序去重的标签字符串数组，每次生成时重新计算，不需要在 YAML 顶层维护。`/api/apps.json` 随应用数据一起返回该汇总，前端直接使用顶层 `tags` 渲染标签选项，并按应用内部 `tags` 匹配筛选结果，不再从应用列表汇总标签。顶层标签缺失或格式无效时显示错误提示；空数组表示仅显示“全部”。`build:luci` 和根目录 `./build.sh` 会自动执行转换。可运行 `pnpm --dir dockergo-web run test:data` 验证转换逻辑。修改目录后需将 `datas/apps.json` 发布到上述 CDN 地址，仅同步插件内置文件不再改变应用市场内容；脚本不会自动上传 GitHub Release。
+应用内部的 `tags` 保留，作为应用与标签的关联；顶层 `tags` 是按首次出现顺序去重的标签字符串数组，每次生成时重新计算，不需要在 YAML 顶层维护。`/api/apps.json` 随应用数据一起返回该汇总，前端直接使用顶层 `tags` 渲染标签选项，并按应用内部 `tags` 匹配筛选结果，不再从应用列表汇总标签。顶层标签缺失或格式无效时显示错误提示；空数组表示仅显示“全部”。`build:luci` 和根目录 `./build.sh` 会自动执行转换。可运行 `pnpm --dir dockergo-web run test:data` 验证转换逻辑。修改目录后需将 `datas/apps.json` 发布到上述 CDN 地址；脚本不会自动上传 GitHub Release。
 
 应用目录文件必须非空，且不超过 1 MiB。根结构如下：
 
@@ -300,4 +299,4 @@ Vite 开发和预览服务当前监听 `0.0.0.0:37001`，配置位于 `dockergo-
 - [表单初始值](../dockergo-web/src/hooks/useInstaller.ts)、[安装配置表单](../dockergo-web/src/components/InstallDialog.tsx)。
 - [后端校验和接口](../luci-app-dockergo/luasrc/controller/dockergo.lua)、[Docker 安装执行器](../luci-app-dockergo/root/usr/libexec/dockergo-install)。
 
-新增应用时，先确认镜像入口与实际命令参数，再选择 `d`、`rm` 和 `restart`。无端口就不声明 `ports`；不需要映射就不声明 `volumes`；自动清理时只能使用 `restart: "no"`。发布目录时检查 YAML、两份 JSON 内容一致，并保证用户需要持久保存的输出目录标为必填。当前不会自动迁移或重建已有容器。
+新增应用时，先确认镜像入口与实际命令参数，再选择 `d`、`rm` 和 `restart`。无端口就不声明 `ports`；不需要映射就不声明 `volumes`；自动清理时只能使用 `restart: "no"`。发布目录时检查 `datas/apps.yaml` 与生成的 `datas/apps.json` 内容一致，并保证用户需要持久保存的输出目录标为必填。当前不会自动迁移或重建已有容器。

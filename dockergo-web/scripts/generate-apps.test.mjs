@@ -1,6 +1,14 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises"
+import {
+  access,
+  mkdtemp,
+  mkdir,
+  readFile,
+  readdir,
+  writeFile,
+  rm,
+} from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { convertApps, generateApps } from "./generate-apps.mjs"
@@ -62,29 +70,23 @@ test("rejects malformed YAML, invalid schema, duplicate IDs and invalid tag/vers
   }
 })
 
-test("writes matching data files and leaves previous outputs intact on validation failure", async () => {
+test("writes only datas/apps.json and leaves previous output intact on validation failure", async () => {
   const root = await mkdtemp(join(tmpdir(), "dockergo-data-test-"))
   try {
     await mkdir(join(root, "datas"))
     await writeFile(join(root, "datas/apps.yaml"), source)
     await generateApps(root)
-    for (const name of ["apps.json"]) {
-      assert.equal(
-        await readFile(join(root, "datas", name), "utf8"),
-        await readFile(
-          join(root, "luci-app-dockergo/root/usr/share/dockergo", name),
-          "utf8",
-        ),
-      )
-    }
-    for (const directory of [
-      "datas",
-      "luci-app-dockergo/root/usr/share/dockergo",
-    ]) {
-      await assert.rejects(readFile(join(root, directory, "tags.json")), {
-        code: "ENOENT",
-      })
-    }
+    assert.equal(
+      await readFile(join(root, "datas/apps.json"), "utf8"),
+      convertApps(source).appsJson,
+    )
+    assert.deepEqual((await readdir(join(root, "datas"))).sort(), [
+      "apps.json",
+      "apps.yaml",
+    ])
+    await assert.rejects(access(join(root, "luci-app-dockergo")), {
+      code: "ENOENT",
+    })
     const before = await readFile(join(root, "datas/apps.json"), "utf8")
     await writeFile(join(root, "datas/apps.yaml"), "apps: invalid")
     await assert.rejects(generateApps(root))

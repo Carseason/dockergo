@@ -57,14 +57,9 @@ export async function generateApps(
   const { appsJson } = convertApps(
     await readFile(resolve(projectRoot, "datas/apps.yaml"), "utf8"),
   )
-  for (const directory of [
-    "datas",
-    "luci-app-dockergo/root/usr/share/dockergo",
-  ]) {
-    const destination = resolve(projectRoot, directory)
-    await mkdir(destination, { recursive: true })
-    await writeFile(resolve(destination, "apps.json"), appsJson)
-  }
+  const destination = resolve(projectRoot, "datas")
+  await mkdir(destination, { recursive: true })
+  await writeFile(resolve(destination, "apps.json"), appsJson)
 }
 
 if (
@@ -75,7 +70,7 @@ if (
     if (process.argv.length !== 2)
       throw new Error("用法：node scripts/generate-apps.mjs")
     await generateApps()
-    console.log("已生成包含顶层 tags 的 apps.json，并同步到 LuCI 插件数据目录")
+    console.log("已生成包含顶层 tags 的 datas/apps.json，可发布到 CDN")
   } catch (error) {
     console.error(`生成应用数据失败：${error.message}`)
     process.exitCode = 1
