@@ -41,6 +41,8 @@ pnpm build
 
 依赖已安装时，可在本目录直接执行 `pnpm build:luci`。
 
+前端构建不转换 `datas/apps.yaml` 或改写 `datas/apps.json`。修改应用目录后，在仓库根目录单独运行 `./generate-apps.sh`（在本目录则运行 `../generate-apps.sh`）；脚本按锁文件安装依赖，仅生成 CDN 发布用的 JSON，不构建网页或上传 CDN。依赖已安装时也可直接执行 `pnpm run data:generate`。
+
 ## 项目结构
 
 - `src/components`：页面组件和安装弹窗

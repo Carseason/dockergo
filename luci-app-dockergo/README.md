@@ -27,7 +27,7 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 应用 ID 唯一且核心字段完整的目录文件；缺失、过大或无法解析的目录会返回明确的 JSON 错误。
 仓库中的 `datas/apps.yaml` 是可编辑目录，`datas/apps.json` 是对应的 JSON 数据；
 目录来源为 `https://github.com/Carseason/dockergo/releases/download/apps/apps.json`。网页通过同源 `/apps.json` API 读取后端下载的 CDN 数据，避免浏览器跨域限制。下载和校验直接由 Controller 完成，不使用独立 catalog 模块或持久缓存；获取市场目录、安装校验和容器关联每次需要目录时均重新下载。临时下载文件读取后立即删除，失败时同样清理；下载请求发送 `Cache-Control: no-cache, no-store`，API 响应设置 `no-store`。下载失败明确报错，插件不携带本地应用目录，也不提供旧数据回退。前端切换标签或视图仍不会重复请求。下载验证 HTTPS 证书、仅允许 HTTPS 重定向，并限制超时和 1 MiB 文件大小。发布新目录时，将生成的 `datas/apps.json` 更新到上述 Release 下载地址，无需重建前端或重新部署插件数据文件。
-修改 YAML 后，在仓库根目录执行 `pnpm --dir dockergo-web run data:generate`，仅生成用于发布 CDN 的 `datas/apps.json`，不在插件的 `root/usr/share` 下生成副本。首次使用先运行 `pnpm --dir dockergo-web install --frozen-lockfile` 安装依赖。根对象包含同级的 `schemaVersion`、`apps`、`tags`，其中顶层 `tags` 是按首次出现顺序去重的标签字符串数组，不生成独立标签文件；应用中的 `tags` 保留用于关联。前端直接使用接口顶层 `tags` 显示标签选项，仅用各应用内部的 `tags` 匹配筛选结果。
+修改 YAML 后，在仓库根目录独立执行 `./generate-apps.sh`。脚本自动按锁文件安装依赖，仅生成用于发布 CDN 的 `datas/apps.json`，不构建前端或在插件的 `root/usr/share` 下生成副本。依赖已安装时，也可在 `dockergo-web` 目录运行 `pnpm run data:generate`。根对象包含同级的 `schemaVersion`、`apps`、`tags`，其中顶层 `tags` 是按首次出现顺序去重的标签字符串数组，不生成独立标签文件；应用中的 `tags` 保留用于关联。前端直接使用接口顶层 `tags` 显示标签选项，仅用各应用内部的 `tags` 匹配筛选结果。
 每个应用必须声明 `version` 字符串，应用市场会在标题旁显示该版本号。
 端口项使用 `port` 表示默认宿主机端口、`target` 表示容器端口，并通过 `desc`
 向用户说明用途。存储项使用 `target` 表示容器路径，`type` 必须为 `dir` 或
@@ -110,7 +110,7 @@ ID 或版本包含下划线时优先使用唯一的目录 ID 匹配，存在歧�
 ./build.sh
 ```
 
-脚本要求已安装 Node.js 和项目指定的 pnpm，会按锁文件安装依赖、从 YAML 生成应用和标签 JSON、检查 TypeScript 类型，再构建前端。脚本可通过完整路径从任意工作目录调用。
+脚本要求已安装 Node.js 和项目指定的 pnpm，会按锁文件安装依赖、检查 TypeScript 类型，再构建前端。脚本可通过完整路径从任意工作目录调用。前端构建不转换应用目录、不读取 YAML 或改写 `datas/apps.json`；目录转换使用独立的 `./generate-apps.sh`。
 
 生成的文件会写入本插件的 `htdocs/luci-static/resources/dockergo/app`，它们是 LuCI 安装包需要携带的运行时资源。构建会重新生成该目录，不编译 IPK/APK，也不上传设备。
 

@@ -2,7 +2,7 @@
 set -eu
 
 if [ "$#" -ne 0 ]; then
-    printf '用法：%s\n将前端编译到 luci-app-dockergo，不构建 IPK/APK。\n' "$0" >&2
+    printf '用法：%s\n仅将前端编译到 luci-app-dockergo，不转换应用目录或构建 IPK/APK。\n' "$0" >&2
     exit 2
 fi
 

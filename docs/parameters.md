@@ -17,12 +17,12 @@
 前端不直接读取 YAML，也不直接读取仓库中的 `datas/apps.json`。修改 YAML 后，在仓库根目录运行：
 
 ```sh
-pnpm --dir dockergo-web run data:generate
+./generate-apps.sh
 ```
 
-首次使用请先运行 `pnpm --dir dockergo-web install --frozen-lockfile` 安装依赖。脚本仅将 YAML 转为 `datas/apps.json`，在根对象生成与 `apps`、`schemaVersion` 同级的 `tags` 字段；不向插件目录写入数据，也不生成独立标签文件。插件发布目录不携带应用市场数据。转换先检查根结构、应用 ID 唯一性、版本和标签格式；完整安装参数仍由后端校验。无效输入会报错退出，不覆盖已有生成文件。数字版本必须加引号。
+脚本要求已安装 Node.js 和项目指定的 pnpm，会自动按锁文件安装生成工具依赖，也可通过完整路径从任意工作目录调用。它仅将 YAML 转为 `datas/apps.json`，在根对象生成与 `apps`、`schemaVersion` 同级的 `tags` 字段；不构建前端、不向插件目录写入数据，也不生成独立标签文件。依赖已安装时，可在 `dockergo-web` 目录执行 `pnpm run data:generate`。插件发布目录不携带应用市场数据。转换先检查根结构、应用 ID 唯一性、版本和标签格式；完整安装参数仍由后端校验。无效输入会报错退出，不覆盖已有生成文件。数字版本必须加引号。
 
-应用内部的 `tags` 保留，作为应用与标签的关联；顶层 `tags` 是按首次出现顺序去重的标签字符串数组，每次生成时重新计算，不需要在 YAML 顶层维护。`/api/apps.json` 随应用数据一起返回该汇总，前端直接使用顶层 `tags` 渲染标签选项，并按应用内部 `tags` 匹配筛选结果，不再从应用列表汇总标签。顶层标签缺失或格式无效时显示错误提示；空数组表示仅显示“全部”。`build:luci` 和根目录 `./build.sh` 会自动执行转换。可运行 `pnpm --dir dockergo-web run test:data` 验证转换逻辑。修改目录后需将 `datas/apps.json` 发布到上述 CDN 地址；脚本不会自动上传 GitHub Release。
+应用内部的 `tags` 保留，作为应用与标签的关联；顶层 `tags` 是按首次出现顺序去重的标签字符串数组，每次生成时重新计算，不需要在 YAML 顶层维护。`/api/apps.json` 随应用数据一起返回该汇总，前端直接使用顶层 `tags` 渲染标签选项，并按应用内部 `tags` 匹配筛选结果，不再从应用列表汇总标签。顶层标签缺失或格式无效时显示错误提示；空数组表示仅显示“全部”。目录转换由 `./generate-apps.sh` 独立执行；`build:luci` 和根目录 `./build.sh` 只构建前端，不读取 YAML 或改写 `datas/apps.json`。可在 `dockergo-web` 目录运行 `pnpm run test:data` 验证转换逻辑。修改目录后需将 `datas/apps.json` 发布到上述 CDN 地址；脚本不会自动上传 GitHub Release。
 
 应用目录文件必须非空，且不超过 1 MiB。根结构如下：
 

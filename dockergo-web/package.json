@@ -9,7 +9,7 @@
     "data:generate": "node scripts/generate-apps.mjs",
     "test:data": "node --test scripts/generate-apps.test.mjs",
     "test:catalog": "node --test scripts/catalog-api.test.mjs",
-    "build:luci": "pnpm run data:generate && tsc -b && vite build --outDir ../luci-app-dockergo/htdocs/luci-static/resources/dockergo/app --emptyOutDir",
+    "build:luci": "tsc -b && vite build --outDir ../luci-app-dockergo/htdocs/luci-static/resources/dockergo/app --emptyOutDir",
     "check": "tsc -b",
     "format": "oxfmt ."
   },
