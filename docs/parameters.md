@@ -8,8 +8,12 @@
 | --- | --- |
 | `datas/apps.yaml` | 人工维护的应用市场目录 |
 | `datas/apps.json` | YAML 对应的 JSON 数据 |
-| `luci-app-dockergo/root/usr/share/dockergo/apps.json` | 插件携带的运行时 JSON，安装后位于 `/usr/share/dockergo/apps.json` |
-| `GET /cgi-bin/luci/admin/services/dockergo/api/apps.json` | 后端读取运行时 JSON，校验后返回给前端 |
+| `luci-app-dockergo/root/usr/share/dockergo/apps.json` | 构建时生成的目录副本，运行时不再作为市场或安装来源 |
+| `GET /cgi-bin/luci/admin/services/dockergo/api/apps.json` | 后端从固定 CDN 下载、校验并缓存，再返回给前端 |
+
+目录发布地址为 `https://github.com/Carseason/dockergo/releases/download/apps/apps.json`。网页仍调用同源 API，避免 GitHub Releases 下载链路缺少跨域允许头导致浏览器请求失败。每次打开页面或手动刷新市场都会重新下载；切换标签或视图不额外请求。安装校验和容器名称关联共用 `/var/run/dockergo/apps.json` 中已验证的 CDN 快照，缓存有效期 5 分钟，缺失、损坏或过期会重新下载。目录获取失败时返回错误，不回退到插件内置目录；失败下载不会覆盖已有缓存。
+
+后端通过 `curl` 验证 HTTPS 证书，仅允许 HTTPS 重定向，连接超时 5 秒、总超时 20 秒、最多 5 次重定向，目录限制 1 MiB。插件依赖 `curl`、`ca-bundle`，临时下载文件位于私有目录，校验成功后原子替换缓存。可在具备 LuCI Lua 环境的设备上运行 `lua tests/catalog_test.lua luasrc/model/dockergo/catalog.lua` 测试下载和缓存逻辑（测试使用内存模拟，不联网或改动设备目录）。
 
 前端不直接读取 YAML，也不直接读取仓库中的 `datas/apps.json`。修改 YAML 后，在仓库根目录运行：
 
@@ -19,7 +23,7 @@ pnpm --dir dockergo-web run data:generate
 
 首次使用请先运行 `pnpm --dir dockergo-web install --frozen-lockfile` 安装依赖。脚本将 YAML 转为 `apps.json`，在根对象生成与 `apps`、`schemaVersion` 同级的 `tags` 字段，同时写入 `datas/` 和插件数据目录，不生成独立标签文件。转换先检查根结构、应用 ID 唯一性、版本和标签格式；完整安装参数仍由后端校验。无效输入会报错退出，不覆盖已有生成文件。数字版本必须加引号。
 
-应用内部的 `tags` 保留，作为应用与标签的关联；顶层 `tags` 是按首次出现顺序去重的标签字符串数组，每次生成时重新计算，不需要在 YAML 顶层维护。`/api/apps.json` 随应用数据一起返回该汇总，前端直接使用顶层 `tags` 渲染标签选项，并按应用内部 `tags` 匹配筛选结果，不再从应用列表汇总标签。顶层标签缺失或格式无效时显示错误提示；空数组表示仅显示“全部”。`build:luci` 和根目录 `./build.sh` 会自动执行转换。可运行 `pnpm --dir dockergo-web run test:data` 验证转换逻辑。部署时需同步插件数据文件。
+应用内部的 `tags` 保留，作为应用与标签的关联；顶层 `tags` 是按首次出现顺序去重的标签字符串数组，每次生成时重新计算，不需要在 YAML 顶层维护。`/api/apps.json` 随应用数据一起返回该汇总，前端直接使用顶层 `tags` 渲染标签选项，并按应用内部 `tags` 匹配筛选结果，不再从应用列表汇总标签。顶层标签缺失或格式无效时显示错误提示；空数组表示仅显示“全部”。`build:luci` 和根目录 `./build.sh` 会自动执行转换。可运行 `pnpm --dir dockergo-web run test:data` 验证转换逻辑。修改目录后需将 `datas/apps.json` 发布到上述 CDN 地址，仅同步插件内置文件不再改变应用市场内容；脚本不会自动上传 GitHub Release。
 
 应用目录文件必须非空，且不超过 1 MiB。根结构如下：
 

@@ -7,8 +7,6 @@ local fs = require "nixio.fs"
 
 local LIST_COMMAND = "docker ps --all --no-trunc --format '{{json .}}'"
 local EXIT_MARKER = "__DOCKERGO_EXIT__"
-local CATALOG_PATH = "/usr/share/dockergo/apps.json"
-local CATALOG_MAX_BYTES = 1024 * 1024
 local INSTALL_TASK_DIR = "/var/run/dockergo"
 local INSTALL_TASK_ID = "dockergo"
 local INSTALL_RUNNER = "/usr/libexec/dockergo-install"
@@ -66,6 +64,14 @@ end
 local function valid_catalog(catalog)
 	if type(catalog) ~= "table" or catalog.schemaVersion ~= 1 or type(catalog.apps) ~= "table" then
 		return false, "应用目录根结构无效"
+	end
+	if type(catalog.tags) ~= "table" then
+		return false, "应用目录顶层标签无效"
+	end
+	for _, tag in ipairs(catalog.tags) do
+		if type(tag) ~= "string" or tag:match("%S") == nil then
+			return false, "应用目录顶层标签无效"
+		end
 	end
 
 	local ids = {}
@@ -206,30 +212,12 @@ local function run(command)
 	return status, output
 end
 
-local function load_catalog()
-	local file = io.open(CATALOG_PATH, "r")
-	if not file then
-		return nil, 503, "CATALOG_UNAVAILABLE", "应用目录文件不存在"
-	end
-
-	local contents = file:read("*a") or ""
-	file:close()
-
-	if #contents == 0 or #contents > CATALOG_MAX_BYTES then
-		return nil, 502, "CATALOG_INVALID", "应用目录文件为空或超过大小限制"
-	end
-
-	local catalog = jsonc.parse(contents)
-	local valid, message = valid_catalog(catalog)
-	if not valid then
-		return nil, 502, "CATALOG_INVALID", message
-	end
-
-	return catalog
+local function load_catalog(refresh)
+	return require("luci.model.dockergo.catalog").load(valid_catalog, refresh)
 end
 
 function api_apps()
-	local catalog, status, code, message = load_catalog()
+	local catalog, status, code, message = load_catalog(true)
 	if not catalog then
 		write_error(status, code, message)
 		return
