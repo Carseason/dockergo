@@ -16,6 +16,11 @@ local function valid_restart(value)
 end
 
 function index()
+	local page = entry({"admin", "services", "dockergo"}, view("dockergo/index"), "DockerGo", 70)
+	page.depends = {fs = {["/usr/bin/docker"] = "executable"}}
+	entry({"admin", "services", "dockergo", "installed"}, view("dockergo/index"))
+	entry({"admin", "services", "dockergo", "market"}, view("dockergo/index")).leaf = true
+
 	entry({"admin", "services", "dockergo", "api", "apps.json"}, call("api_apps")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "files"}, call("api_list_files")).leaf = true
 	entry({"admin", "services", "dockergo", "api", "install"}, post("api_install_app")).leaf = true
