@@ -5,11 +5,9 @@
       "id": "nginx",
       "title": "Nginx",
       "version": "20261113",
-      "description": "高性能 HTTP 服务器与反向代理服务器",
+      "description": "Nginx服务，用于映射本地文件",
       "tags": [
-        "网络",
-        "Web",
-        "反向代理"
+        "网络"
       ],
       "image": "nginx:latest",
       "d": true,
@@ -32,8 +30,6 @@
     }
   ],
   "tags": [
-    "网络",
-    "Web",
-    "反向代理"
+    "网络"
   ]
 }
