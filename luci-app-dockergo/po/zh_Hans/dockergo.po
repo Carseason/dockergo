@@ -7,4 +7,4 @@ msgstr ""
 
 #: luasrc/controller/dockergo.lua
 msgid "DockerGo"
-msgstr "DockerGo 容器"
+msgstr "容器GO"
