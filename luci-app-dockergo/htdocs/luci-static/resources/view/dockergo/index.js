@@ -123,7 +123,7 @@ return view.extend({
 
 	render: function(styleText) {
 		window.DockerGoConfig = Object.freeze({
-			pageBase: L.url('admin/services/dockergo'),
+				pageBase: L.url('admin/dockergo'),
 			apiBase: L.url('admin/services/dockergo/api'),
 			csrfToken: L.env.token
 		});

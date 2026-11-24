@@ -14,18 +14,23 @@ setfenv(controller.index, {
 	view = function(path) return { type = "view", path = path } end,
 	call = function(name) return { type = "call", name = name } end,
 	post = function(name) return { type = "post", name = name } end,
+	_ = function(text) assert(text == "DockerGo") return "DockerGo 容器" end,
 })
 controller.index()
-local root = assert(entries["admin/services/dockergo"])
-assert(root.title == "DockerGo" and root.order == 70)
+local root = assert(entries["admin/dockergo"])
+assert(root.title == "DockerGo 容器" and root.order == 70)
 assert(root.depends.fs["/usr/bin/docker"] == "executable")
 assert(not root.leaf, "root must not absorb API or page routes")
-for _, suffix in ipairs({"", "/installed", "/market"}) do
-	local node = assert(entries["admin/services/dockergo" .. suffix])
-	assert(node.action.type == "view" and node.action.path == "dockergo/index")
-	if suffix ~= "" then assert(not node.title, "page aliases must not add menu items") end
+for _, base in ipairs({"admin/dockergo", "admin/services/dockergo"}) do
+	for _, suffix in ipairs({"", "/installed", "/market"}) do
+		local node = assert(entries[base .. suffix])
+		assert(node.action.type == "view" and node.action.path == "dockergo/index")
+		if base ~= "admin/dockergo" or suffix ~= "" then
+			assert(not node.title, "page aliases must not add menu items")
+		end
+	end
+	assert(entries[base .. "/market"].leaf, "old market subpaths need wildcard routing")
 end
-assert(entries["admin/services/dockergo/market"].leaf, "old market subpaths need wildcard routing")
 for _, route in ipairs({"apps.json", "files", "install", "containers", "inspect", "logs", "control", "remove"}) do
 	local node = assert(entries["admin/services/dockergo/api/" .. route])
 	assert(node.leaf)

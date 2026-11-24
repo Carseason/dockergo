@@ -18,8 +18,13 @@ local function valid_restart(value)
 end
 
 function index()
-	local page = entry({"admin", "services", "dockergo"}, view("dockergo/index"), "DockerGo", 70)
+	local page = entry({"admin", "dockergo"}, view("dockergo/index"), _("DockerGo"), 70)
 	page.depends = {fs = {["/usr/bin/docker"] = "executable"}}
+	entry({"admin", "dockergo", "installed"}, view("dockergo/index"))
+	entry({"admin", "dockergo", "market"}, view("dockergo/index")).leaf = true
+
+	-- Hidden compatibility pages; existing API paths remain unchanged.
+	entry({"admin", "services", "dockergo"}, view("dockergo/index")).depends = page.depends
 	entry({"admin", "services", "dockergo", "installed"}, view("dockergo/index"))
 	entry({"admin", "services", "dockergo", "market"}, view("dockergo/index")).leaf = true
 

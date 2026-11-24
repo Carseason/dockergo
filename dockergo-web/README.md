@@ -15,7 +15,7 @@ pnpm dev
 
 ## 页面路由与标签筛选
 
-页面使用 History 路径路由，只保存已安装 / 应用市场视图，不使用 Hash。LuCI 中的基础路径是 `/cgi-bin/luci/admin/services/dockergo`，独立开发时基础路径为空：
+页面使用 History 路径路由，只保存已安装 / 应用市场视图，不使用 Hash。LuCI 中的基础路径是 `/cgi-bin/luci/admin/dockergo`，独立开发时基础路径为空。菜单位于 LuCI 一级导航，旧 `/admin/services/dockergo` 页面链接仍兼容，API 前缀保持不变：
 
 - `<基础路径>/installed`：已安装，访问 DockerGo 根页面时也默认显示此视图。
 - `<基础路径>/market`：应用市场，显示全部应用。

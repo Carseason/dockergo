@@ -4,7 +4,9 @@ DockerGo 的 iStoreOS/OpenWrt LuCI 插件。插件提供受 LuCI 登录保护的
 
 应用市场字段、安装请求参数、默认值和当前限制详见 [参数说明](../docs/parameters.md)。
 
-前端使用 History 路径路由保存已安装 / 应用市场视图，不使用 Hash。`luasrc/controller/dockergo.lua` 统一注册 DockerGo 菜单、页面和 API，不使用独立菜单 JSON；菜单仅在 Docker 可执行文件存在时启用。`/admin/services/dockergo/installed`、`/admin/services/dockergo/market` 均加载同一个视图并继承 LuCI 登录校验，作为隐藏页面入口，不增加重复菜单；刷新、重新登录和前进后退保留对应视图。市场标签从目录顶层 `tags` 读取，只保存在页面内存中，选择时不改变 URL，刷新后恢复“全部”。旧市场子路径仍可加载前端，随后规范为市场路径并清除旧标签。
+前端使用 History 路径路由保存已安装 / 应用市场视图，不使用 Hash。`luasrc/controller/dockergo.lua` 统一注册 DockerGo 一级菜单、页面和 API，不使用独立菜单 JSON；菜单位于 `/admin/dockergo`，仅在 Docker 可执行文件存在时启用。`/admin/dockergo/installed`、`/admin/dockergo/market` 均加载同一个视图并继承 LuCI 登录校验，作为隐藏页面入口，不增加重复菜单。旧 `/admin/services/dockergo` 页面和 API 路径保持兼容。刷新、重新登录和前进后退保留对应视图。市场标签从目录顶层 `tags` 读取，只保存在页面内存中，选择时不改变 URL，刷新后恢复“全部”。旧市场子路径仍可加载前端，随后规范为市场路径并清除旧标签。
+
+菜单标题通过 Controller 的 `_("DockerGo")` 翻译，`po/templates/dockergo.pot` 为翻译模板，`po/zh_Hans/dockergo.po` 为简体中文（DockerGo 容器），`po/en/dockergo.po` 为英文（DockerGo）。由 LuCI 标准构建流程生成相应语言包；此处仅国际化菜单标题，不代表 React 网页所有文案已国际化。
 
 可在具备 LuCI Lua 环境的设备上运行 `lua tests/menu_test.lua luasrc/controller/dockergo.lua` 检查菜单、页面和 API 声明；该测试不执行容器操作。
 
